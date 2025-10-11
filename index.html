@@ -2173,7 +2173,16 @@
                                 window.print();
                             }, 1000);
                         };
-                    </script>
+                    </script> 2176 </div>
+
+<!-- Add Business Modal -->
+<div id="add-business-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  ... (entire modal HTML here)
+</div>
+<!-- End Add Business Modal -->
+
+2177 <script>
+
                 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bebe99a643c25a',t:'MTc2MDAyMTk5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
                 </html>
             `;
@@ -2273,7 +2282,24 @@ document.getElementById('bizForm')?.addEventListener('submit', async (e) => {
   } catch (err) {
     alert('Network error. Please try again.');
   }
-});
+}); // Show/Hide Add Business Modal
+function showAddBusiness() {
+  const modal = document.getElementById('add-business-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeAddBusiness() {
+  const modal = document.getElementById('add-business-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
 </script>
 </body>
 </html>
+
