@@ -2306,40 +2306,10 @@ function showCourseUploadForm() {
             alert(`Edit functionality for "${courseTitle}" would be implemented here.`);
         }
 
-        function toggleCourseStatus(courseTitle) {
-            alert(`Status toggle for "${courseTitle}" would be implemented here.`);
-        }
-    </script>
-<script>
-document.getElementById('signup-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.currentTarget;
-  const data = {
-    name: form.name.value || "",
-    phone: form.phone.value || "",
-    email: form.email.value || "",
-    referralProgram: form.referralProgram.value || "",
-    investorWanted: (form.investorWanted.value || "No") === "Yes",
-    verified: !!form.verified.checked
-  };
-
-  try {
-    const json = await res.json();
-
-if (json.ok) {
-  alert('Submitted! Thank you.');
-  form.reset();
-} else {
-  const errText = (json && (json.error || json.message)) || 'Unknown error';
-  alert('Submission failed: ' + errText);
+   function toggleCourseStatus(courseTitle) {
+  alert(`Status toggle for "${courseTitle}" would be implemented here.`);
 }
-} catch (err) {
-  console.error(err);
-  alert('Network error. Please try again.');
-}
-});
 
-    
 // Show/Hide Add Business Modal
 function showAddBusiness() {
   const modal = document.getElementById('add-business-modal');
@@ -2356,10 +2326,6 @@ function closeAddBusiness() {
     modal.classList.remove('flex');
   }
 }
-
 </script>
 </body>
 </html>
-
-
-
