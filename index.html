@@ -2240,6 +2240,22 @@
   ... (entire modal HTML here)
 </div>
 <!-- End Add Business Modal -->
+(() => {
+  window.showPage = function (id) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  window.showAddBusiness = function () {
+    const m = document.getElementById('add-business-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+  };
+  window.closeAddBusiness = function () {
+    const m = document.getElementById('add-business-modal');
+    if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+  };
+})();
 
 </script>
 
