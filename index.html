@@ -1142,70 +1142,97 @@
 
         <!-- Placeholder sections for other pages -->
         <section id="rewards" class="page-section hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Rewards Program</h1>
-                <p class="text-xl text-gray-600">Coming soon - Earn points for community engagement!</p>
-            </div>
-        </section>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h2 class="text-3xl font-bold mb-6">Member Rewards</h2>
+    <p class="text-gray-600 mb-8">Exclusive rewards for Greenwood 100 members. Show your digital card at partner businesses.</p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow">
+        <div class="text-4xl mb-3">☕</div>
+        <h3 class="font-semibold mb-2">Joe’s Coffee</h3>
+        <p class="text-gray-600">Buy 9, get the 10th free. +5% extra for Greenwood members.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <div class="text-4xl mb-3">🛠️</div>
+        <h3 class="font-semibold mb-2">Riverside Auto</h3>
+        <p class="text-gray-600">10% off oil changes with member badge.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <div class="text-4xl mb-3">🍔</div>
+        <h3 class="font-semibold mb-2">Benny’s Grill</h3>
+        <p class="text-gray-600">Free appetizer with 2 entrees (Mon–Thu).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 
         <section id="associations" class="page-section hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Neighborhood Associations</h1>
-                <p class="text-xl text-gray-600">Connect with local neighborhood associations and community groups.</p>
-            </div>
-        </section>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-3xl font-bold">Neighborhood Associations</h2>
+      <span class="text-sm text-gray-500">Calendar is maintained by Admins/Association Admins</span>
+    </div>
 
-        <section id="courses" class="page-section hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Community Courses</h1>
-                    <p class="text-xl text-gray-600">Learn new skills with our community education programs</p>
-                </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-semibold mb-1">Riverside</h3>
+        <p class="text-gray-600 text-sm mb-4">Meets 2nd Tuesday · 7:00 PM</p>
+        <button class="text-brand-green" onclick="showPage('contact')">Contact Coordinator →</button>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-semibold mb-1">Springfield</h3>
+        <p class="text-gray-600 text-sm mb-4">Meets 1st Thursday · 6:30 PM</p>
+        <button class="text-brand-green" onclick="showPage('contact')">Contact Coordinator →</button>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-semibold mb-1">San Marco</h3>
+        <p class="text-gray-600 text-sm mb-4">Meets 3rd Wednesday · 6:00 PM</p>
+        <button class="text-brand-green" onclick="showPage('contact')">Contact Coordinator →</button>
+      </div>
+    </div>
 
-                <!-- Course Categories -->
-                <div class="grid md:grid-cols-4 gap-6 mb-12">
-                    <button onclick="filterCourses('all')" id="filter-all" class="course-filter bg-brand-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                        All Courses
-                    </button>
-                    <button onclick="filterCourses('business')" id="filter-business" class="course-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
-                        Business Skills
-                    </button>
-                    <button onclick="filterCourses('technology')" id="filter-technology" class="course-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
-                        Technology
-                    </button>
-                    <button onclick="filterCourses('community')" id="filter-community" class="course-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
-                        Community Leadership
-                    </button>
-                </div>
+    <div class="bg-white p-6 rounded-lg shadow mt-8">
+      <h3 class="text-xl font-semibold mb-4">📅 Community Calendar (Admin Managed)</h3>
+      <ul id="assoc-calendar" class="space-y-3 text-sm text-gray-700">
+        <!-- Filled by script -->
+      </ul>
+    </div>
+  </div>
+</section>
 
-                <!-- Course Grid -->
-                <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                    <!-- Courses will be populated here -->
-                </div>
 
-                <!-- Course Benefits -->
-                <div class="bg-white rounded-lg shadow-lg p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">🎓 Course Benefits</h2>
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <div class="text-4xl mb-3">📜</div>
-                            <h3 class="font-semibold mb-2">Certificates</h3>
-                            <p class="text-gray-600 text-sm">Earn certificates for completed courses to showcase your skills</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-4xl mb-3">🤝</div>
-                            <h3 class="font-semibold mb-2">Networking</h3>
-                            <p class="text-gray-600 text-sm">Connect with other community members and professionals</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-4xl mb-3">💰</div>
-                            <h3 class="font-semibold mb-2">Career Growth</h3>
-                            <p class="text-gray-600 text-sm">Develop skills that advance your career and business</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section id="courses" class="page-section">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-6">Community Courses</h1>
+      <p class="text-xl text-gray-600">Develop skills that advance your career and business.</p>
+    </div>
+
+    <!-- Course Filters -->
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+      <button onclick="filterCourses('all')" id="filter-all"
+              class="course-filter bg-brand-green text-white px-3 py-2 rounded">
+        All Courses
+      </button>
+      <button onclick="filterCourses('business')" id="filter-business"
+              class="course-filter bg-gray-100 px-3 py-2 rounded">
+        Business Skills
+      </button>
+      <button onclick="filterCourses('technology')" id="filter-technology"
+              class="course-filter bg-gray-100 px-3 py-2 rounded">
+        Technology
+      </button>
+      <button onclick="filterCourses('community')" id="filter-community"
+              class="course-filter bg-gray-100 px-3 py-2 rounded">
+        Community Leadership
+      </button>
+    </div>
+
+    <!-- Grid that JS will populate -->
+    <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+  </div>
+
 
         <section id="membership" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -2243,40 +2270,54 @@
 
 <!-- Navigation + Modal Control Script -->
 <script>
-(() => {
-  // Handle page switching (shows/hides page sections)
-  window.showPage = function (id) {
-    document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('hidden');
+  // --- Courses data (demo content; replace with real data later) ---
+  const COURSES = [
+    { title:'Start a Small Business', tag:'business', level:'Beginner', duration:'2h',
+      desc:'Basics of planning, permits and funding.' },
+    { title:'Excel for Entrepreneurs', tag:'business', level:'Intermediate', duration:'3h',
+      desc:'Cash-flow tracking and simple dashboards.' },
+    { title:'Intro to Web Design', tag:'technology', level:'Beginner', duration:'3h',
+      desc:'Build a simple site with HTML & Tailwind.' },
+    { title:'Neighborhood Leader Training', tag:'community', level:'All', duration:'2h',
+      desc:'How to run meetings and recruit volunteers.' }
+  ];
 
-    // Close modals/overlays when switching pages
-    document.querySelectorAll('#add-business-modal, .modal, .modal-backdrop').forEach(m => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
+  function renderCourses(items){
+    const grid = document.getElementById('courses-grid');
+    if (!grid) return;
+    grid.innerHTML = items.map(c => `
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-1">${c.title}</h3>
+        <p class="text-sm text-gray-500 mb-3">${c.desc}</p>
+        <div class="text-xs text-gray-500">Level: ${c.level} • ${c.duration}</div>
+      </div>
+    `).join('');
+  }
+
+  function setActiveFilter(id){
+    document.querySelectorAll('.course-filter').forEach(b=>{
+      b.classList.remove('bg-brand-green','text-white');
+      b.classList.add('bg-gray-100');
     });
+    const btn = document.getElementById(id);
+    if (btn){
+      btn.classList.remove('bg-gray-100');
+      btn.classList.add('bg-brand-green','text-white');
+    }
+  }
 
-    // Smooth scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.filterCourses = function(tag){
+    if (tag === 'all'){
+      renderCourses(COURSES);
+      setActiveFilter('filter-all');
+      return;
+    }
+    renderCourses(COURSES.filter(c => c.tag === tag));
+    setActiveFilter('filter-'+tag);
   };
 
-  // Opens the Add Business modal
-  window.showAddBusiness = function () {
-    const m = document.getElementById('add-business-modal');
-    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
-  };
-
-  // Closes the Add Business modal
-  window.closeAddBusiness = function () {
-    const m = document.getElementById('add-business-modal');
-    if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-  };
-
-  // Allow ESC key to close modal globally
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') window.closeAddBusiness();
-  });
-})();
+  // Initial render
+  renderCourses(COURSES);
 </script>
 </body>
 </html>
