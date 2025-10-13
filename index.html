@@ -2240,108 +2240,43 @@
   ... (entire modal HTML here)
 </div>
 <!-- End Add Business Modal -->
-<script> (() => {
+
+<!-- Navigation + Modal Control Script -->
+<script>
+(() => {
+  // Handle page switching (shows/hides page sections)
   window.showPage = function (id) {
     document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
     const el = document.getElementById(id);
     if (el) el.classList.remove('hidden');
+
+    // Close modals/overlays when switching pages
+    document.querySelectorAll('#add-business-modal, .modal, .modal-backdrop').forEach(m => {
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    });
+
+    // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Opens the Add Business modal
   window.showAddBusiness = function () {
     const m = document.getElementById('add-business-modal');
     if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
   };
+
+  // Closes the Add Business modal
   window.closeAddBusiness = function () {
     const m = document.getElementById('add-business-modal');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
   };
+
+  // Allow ESC key to close modal globally
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.closeAddBusiness();
+  });
 })();
-
-</script>
-
-<script>
-certificateWindow.document.write(certificateHTML);
-certificateWindow.document.close();
-
-// Course upload modal functions (Admin only)
-function showCourseUploadForm() {
-  if (currentUser && currentUser.type === 'admin') {
-    document.getElementById('course-upload-modal').classList.remove('hidden');
-  } else {
-    alert('Access denied. Admin privileges required.');
-  }
-}
-
-
-        function closeCourseUploadForm() {
-            document.getElementById('course-upload-modal').classList.add('hidden');
-        }
-
-        function handleCourseUpload(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            
-            const courseData = {
-                title: formData.get('courseTitle'),
-                category: formData.get('courseCategory'),
-                duration: formData.get('courseDuration'),
-                level: formData.get('courseLevel'),
-                instructor: formData.get('courseInstructor'),
-                description: formData.get('courseDescription'),
-                price: formData.get('coursePrice') || 'Free for Members',
-                status: formData.get('courseStatus') || 'Active'
-            };
-            
-            // Simulate course upload
-            alert(`Course "${courseData.title}" has been uploaded successfully!`);
-            closeCourseUploadForm();
-            
-            // Add to admin courses list
-            const coursesList = document.getElementById('admin-courses-list');
-            if (coursesList) {
-                const newCourseHTML = `
-                    <div class="bg-white p-4 rounded border flex justify-between items-center">
-                        <div>
-                            <div class="font-medium">${courseData.title}</div>
-                            <div class="text-sm text-gray-600">${courseData.category} • ${courseData.duration} • ${courseData.status}</div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editCourse('${courseData.title}')" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm">Edit</button>
-                            <button onclick="toggleCourseStatus('${courseData.title}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Deactivate</button>
-                        </div>
-                    </div>
-                `;
-                coursesList.insertAdjacentHTML('beforeend', newCourseHTML);
-            }
-            
-            // Reset form
-            event.target.reset();
-        }
-
-        function editCourse(courseTitle) {
-            alert(`Edit functionality for "${courseTitle}" would be implemented here.`);
-        }
-
-   function toggleCourseStatus(courseTitle) {
-  alert(`Status toggle for "${courseTitle}" would be implemented here.`);
-}
-
-// Show/Hide Add Business Modal
-function showAddBusiness() {
-  const modal = document.getElementById('add-business-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-}
-
-function closeAddBusiness() {
-  const modal = document.getElementById('add-business-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-}
 </script>
 </body>
 </html>
