@@ -2272,30 +2272,32 @@
 <!-- End Add Business Modal -->
 
 <!-- Navigation + Modal Control Script -->
+<!-- other JavaScript above here -->
+
 <script>
 (() => {
   window.showPage = function (id) {
-    // hide all sections
+    // Hide all sections
     document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
 
-    // show requested one
+    // Show selected section
     const el = document.getElementById(id);
     if (el) {
       el.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // close mobile menu if present
+    // Close mobile menu if present
     const mm = document.getElementById('mobile-menu');
     if (mm) mm.classList.add('hidden');
 
-    // highlight active nav
+    // Highlight active nav button
     document.querySelectorAll('[data-nav]').forEach(b => b.classList.remove('text-brand-green'));
     const active = document.querySelector(`[data-nav="${id}"]`);
     if (active) active.classList.add('text-brand-green');
   };
 
-  // show Home at load (change if your home section uses a different id)
+  // Show home section when page first loads
   document.addEventListener('DOMContentLoaded', () => showPage('home'));
 })();
 </script>
