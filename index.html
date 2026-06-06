@@ -561,7 +561,7 @@
                         <div id="association-events-content" class="association-tab-content">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-semibold">Event Management</h3>
-                                <button class="bg-green-600 text-white px-4 py-2 rounded-lg">Create Event</button>
+                                <button onclick="openCreateEventModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Create Event</button>
                             </div>
                             <div class="space-y-4">
                                 <div class="border rounded-lg p-4">
@@ -604,12 +604,12 @@
                                 <div class="border rounded-lg p-4">
                                     <h4 class="font-medium mb-2">Send Newsletter</h4>
                                     <p class="text-sm text-gray-600 mb-3">Communicate with all members</p>
-                                    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create Newsletter</button>
+                                    <button onclick="openNewsletterModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Newsletter</button>
                                 </div>
                                 <div class="border rounded-lg p-4">
                                     <h4 class="font-medium mb-2">Emergency Alert</h4>
                                     <p class="text-sm text-gray-600 mb-3">Send urgent notifications</p>
-                                    <button class="bg-red-600 text-white px-4 py-2 rounded">Send Alert</button>
+                                    <button onclick="openAlertModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Send Alert</button>
                                 </div>
                             </div>
                         </div>
@@ -977,10 +977,10 @@
                         <button onclick="showIndividualRegistration()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors font-semibold">
                             👤 Individual Registration
                         </button>
-                        <button onclick="showPage('membership')" class="bg-brand-green text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                        <button onclick="openUpgradePremiumModal()" class="bg-brand-green text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
                             Upgrade to Premium
                         </button>
-                        <button onclick="showLogin()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-semibold">
+                        <button onclick="showPage('login')" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-semibold">
                             Member Login
                         </button>
                     </div>
@@ -1209,6 +1209,25 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <h2 class="text-3xl font-bold mb-6">Member Rewards</h2>
     <p class="text-gray-600 mb-8">Exclusive rewards for Greenwood 100 members. Show your digital card at partner businesses.</p>
+
+    <!-- Points balance (shown when logged in) -->
+    <div id="rewards-points-section" class="mb-8 hidden">
+      <div class="bg-green-50 border border-green-200 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Your current points balance</p>
+          <div class="text-4xl font-bold text-brand-green" id="rewards-page-points">125</div>
+          <p class="text-xs text-gray-500 mt-1">Earn more by referring friends and completing courses</p>
+        </div>
+        <button onclick="openRewardsCatalog()" class="bg-brand-green text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold">Redeem Points</button>
+      </div>
+    </div>
+    <!-- Login prompt (shown when not logged in) -->
+    <div id="rewards-login-prompt" class="mb-8">
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+        <p class="text-gray-600 mb-3">Log in to see your points balance and redeem rewards.</p>
+        <button onclick="showPage('login')" class="bg-brand-green text-white px-6 py-2 rounded-lg hover:bg-green-700">Log In</button>
+      </div>
+    </div>
 
     <div class="grid md:grid-cols-3 gap-6">
       <div class="bg-white p-6 rounded-lg shadow">
@@ -2041,6 +2060,8 @@
                     displayCourses('all');
                 } else if (pageId === 'leaderboard') {
                     initLeaderboard();
+                } else if (pageId === 'rewards') {
+                    refreshRewardsPointsDisplay();
                 }
                 
                 // Close mobile menu
@@ -2561,11 +2582,13 @@
         }
 
         function showAddBusiness() {
-            alert('Add business form would be displayed here.');
+            openAddBusinessModal();
         }
 
         function showIndividualRegistration() {
-            alert('Individual registration form would be displayed here.');
+            showPage('login');
+            // Switch to the signup tab and select individual account type
+            setTimeout(() => selectAccountType('individual'), 100);
         }
 
         function showLogin() {
@@ -2692,14 +2715,14 @@
         }
 
         function enrollInCourse(courseTitle) {
-            if (currentUser && currentUser.type === 'individual') {
+            if (currentUser && (currentUser.type === 'individual' || currentUser.type === 'business')) {
                 // Check if already enrolled
                 const alreadyEnrolled = userCourses.some(course => course.title === courseTitle);
                 if (alreadyEnrolled) {
-                    alert(`You are already enrolled in "${courseTitle}". Check your member dashboard to track progress.`);
+                    showEnrollBanner(`You are already enrolled in "${courseTitle}". Visit your dashboard to track progress.`, true);
                     return;
                 }
-                
+
                 // Add to enrolled courses
                 userCourses.push({
                     title: courseTitle,
@@ -2707,14 +2730,27 @@
                     progress: 0,
                     completed: false
                 });
-                
-                alert(`Successfully enrolled in "${courseTitle}"! Check your member dashboard to track progress and access course materials.`);
+
+                showEnrollBanner(`You're enrolled in ${courseTitle}! Visit your dashboard to track progress.`);
             } else if (currentUser) {
-                alert('Course enrollment is available for individual members. Please contact us about upgrading your membership.');
+                showEnrollBanner('Course enrollment is available for individual and business members.', true);
             } else {
-                alert('Please log in as an individual member to enroll in courses. Individual members get free access to all courses!');
-                showPage('login');
+                showEnrollBanner('Please log in to enroll in courses. Members get free access to all courses!', true);
+                setTimeout(() => showPage('login'), 2500);
             }
+        }
+
+        function showEnrollBanner(message, isWarning) {
+            // Remove existing banner if any
+            const existing = document.getElementById('enroll-banner');
+            if (existing) existing.remove();
+
+            const banner = document.createElement('div');
+            banner.id = 'enroll-banner';
+            banner.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium max-w-lg w-full text-center ${isWarning ? 'bg-yellow-500' : 'bg-green-600'}`;
+            banner.textContent = message;
+            document.body.appendChild(banner);
+            setTimeout(() => { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 4000);
         }
 
         function viewCourseDetails(courseTitle) {
@@ -3011,6 +3047,15 @@
             const formData = new FormData(event.target);
             const name = formData.get('contactName') || '';
             const submitBtn = event.target.querySelector('button[type="submit"]');
+            // Find or create inline message element
+            let msgEl = document.getElementById('contact-form-msg');
+            if (!msgEl) {
+                msgEl = document.createElement('div');
+                msgEl.id = 'contact-form-msg';
+                msgEl.className = 'mt-3 text-sm';
+                submitBtn.parentNode.insertBefore(msgEl, submitBtn.nextSibling);
+            }
+            msgEl.textContent = '';
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
 
             try {
@@ -3027,13 +3072,16 @@
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    alert('Thank you, ' + name + '! Your message has been sent. We will get back to you within 1-2 business days at info@greenwood100.com.');
+                    msgEl.className = 'mt-3 text-sm text-green-700 font-medium';
+                    msgEl.textContent = 'Thank you, ' + name + '! Your message has been sent. We will get back to you within 1–2 business days.';
                     event.target.reset();
                 } else {
-                    alert('There was a problem sending your message: ' + (data.error || 'Unknown error'));
+                    msgEl.className = 'mt-3 text-sm text-red-600';
+                    msgEl.textContent = 'There was a problem sending your message: ' + (data.error || 'Unknown error');
                 }
             } catch (err) {
-                alert('Network error. Please try again.');
+                msgEl.className = 'mt-3 text-sm text-red-600';
+                msgEl.textContent = 'Network error. Please try again.';
             } finally {
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Message'; }
             }
@@ -3445,6 +3493,197 @@
             }
         }
 
+        // ===================== CREATE EVENT MODAL =====================
+        function openCreateEventModal() {
+            const modal = document.getElementById('create-event-modal');
+            if (modal) {
+                document.getElementById('create-event-form').reset();
+                document.getElementById('create-event-msg').textContent = '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeCreateEventModal() {
+            const modal = document.getElementById('create-event-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        function handleCreateEventForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const name = formData.get('eventName') || '';
+            const date = formData.get('eventDate') || '';
+            const time = formData.get('eventTime') || '';
+            const location = formData.get('eventLocation') || '';
+            const description = formData.get('eventDescription') || '';
+            const maxAttendees = formData.get('eventMaxAttendees') || '';
+
+            if (!name || !date || !time || !location || !description) {
+                const msgEl = document.getElementById('create-event-msg');
+                msgEl.className = 'text-sm text-red-600';
+                msgEl.textContent = 'Please fill in all required fields.';
+                return;
+            }
+
+            // Add event to the events list in the Events tab
+            const eventsList = document.querySelector('#association-events-content .space-y-4');
+            if (eventsList) {
+                const formattedDate = new Date(date + 'T' + time).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const formattedTime = new Date('1970-01-01T' + time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const newEvent = document.createElement('div');
+                newEvent.className = 'border rounded-lg p-4';
+                newEvent.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium">${name}</h4>
+                            <p class="text-sm text-gray-600">${formattedDate} &bull; ${formattedTime}</p>
+                            <p class="text-sm text-gray-500">${location}${maxAttendees ? ' &bull; Max ' + maxAttendees + ' attendees' : ''}</p>
+                            <p class="text-sm text-gray-500">${description}</p>
+                            <p class="text-sm text-gray-500">0 attendees registered</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Edit</button>
+                            <button class="bg-red-600 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                        </div>
+                    </div>`;
+                eventsList.appendChild(newEvent);
+            }
+
+            closeCreateEventModal();
+            // Show success banner
+            showToast('Event "' + name + '" created successfully!', 'green');
+        }
+
+        // ===================== NEWSLETTER MODAL =====================
+        function openNewsletterModal() {
+            const modal = document.getElementById('newsletter-modal');
+            if (modal) {
+                document.getElementById('newsletter-form').reset();
+                document.getElementById('newsletter-msg').textContent = '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeNewsletterModal() {
+            const modal = document.getElementById('newsletter-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        function handleNewsletterForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const subject = formData.get('newsletterSubject') || '';
+            if (!subject) {
+                const msgEl = document.getElementById('newsletter-msg');
+                msgEl.className = 'text-sm text-red-600';
+                msgEl.textContent = 'Please enter a subject.';
+                return;
+            }
+            closeNewsletterModal();
+            showToast('Newsletter queued for 234 members', 'blue');
+        }
+
+        // ===================== EMERGENCY ALERT MODAL =====================
+        function openAlertModal() {
+            const modal = document.getElementById('alert-modal');
+            if (modal) {
+                document.getElementById('alert-form').reset();
+                document.getElementById('alert-msg').textContent = '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('alert-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        function handleAlertForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const alertType = formData.get('alertType') || '';
+            if (!alertType) {
+                const msgEl = document.getElementById('alert-msg');
+                msgEl.className = 'text-sm text-red-600';
+                msgEl.textContent = 'Please select an alert type.';
+                return;
+            }
+            closeAlertModal();
+            showToast('Alert sent to 234 members', 'red');
+        }
+
+        // ===================== ADD BUSINESS MODAL =====================
+        function openAddBusinessModal() {
+            const modal = document.getElementById('add-business-modal');
+            if (modal) {
+                document.getElementById('add-business-form').reset();
+                document.getElementById('add-business-msg').textContent = '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeAddBusinessModal() {
+            const modal = document.getElementById('add-business-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        function handleAddBusinessForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const name = formData.get('bizName') || '';
+            if (!name) {
+                const msgEl = document.getElementById('add-business-msg');
+                msgEl.className = 'text-sm text-red-600';
+                msgEl.textContent = 'Please fill in all required fields.';
+                return;
+            }
+            closeAddBusinessModal();
+            showToast('Business submitted for review!', 'green');
+        }
+
+        // ===================== UPGRADE PREMIUM MODAL =====================
+        function openUpgradePremiumModal() {
+            const modal = document.getElementById('upgrade-premium-modal');
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        }
+
+        function closeUpgradePremiumModal() {
+            const modal = document.getElementById('upgrade-premium-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        // ===================== REWARDS PAGE POINTS DISPLAY =====================
+        function refreshRewardsPointsDisplay() {
+            const pointsSection = document.getElementById('rewards-points-section');
+            const loginPrompt = document.getElementById('rewards-login-prompt');
+            const pointsEl = document.getElementById('rewards-page-points');
+            if (currentUser) {
+                if (pointsSection) pointsSection.classList.remove('hidden');
+                if (loginPrompt) loginPrompt.classList.add('hidden');
+                if (pointsEl) pointsEl.textContent = memberPoints;
+            } else {
+                if (pointsSection) pointsSection.classList.add('hidden');
+                if (loginPrompt) loginPrompt.classList.remove('hidden');
+            }
+        }
+
+        // ===================== GENERIC TOAST =====================
+        function showToast(message, color) {
+            const existing = document.getElementById('site-toast');
+            if (existing) existing.remove();
+            const colorMap = { green: 'bg-green-600', blue: 'bg-blue-600', red: 'bg-red-600', yellow: 'bg-yellow-500' };
+            const toast = document.createElement('div');
+            toast.id = 'site-toast';
+            toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium max-w-lg w-full text-center ${colorMap[color] || 'bg-green-600'}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 4000);
+        }
+
     </script>
 
     <!-- Rewards Catalog Modal -->
@@ -3526,6 +3765,197 @@
                     <button type="submit" class="w-full bg-brand-green text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">Submit Interest</button>
                     <div id="investor-interest-msg" class="mt-2 text-sm"></div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div id="create-event-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Create New Event</h2>
+                    <button onclick="closeCreateEventModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <form id="create-event-form" onsubmit="handleCreateEventForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
+                        <input type="text" name="eventName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                            <input type="date" name="eventDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                            <input type="time" name="eventTime" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                        <input type="text" name="eventLocation" required placeholder="e.g. Riverside Park" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                        <textarea name="eventDescription" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm" placeholder="Describe the event..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Attendees</label>
+                        <input type="number" name="eventMaxAttendees" min="1" placeholder="e.g. 100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div id="create-event-msg" class="text-sm"></div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="closeCreateEventModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm">Create Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter Modal -->
+    <div id="newsletter-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Send Newsletter</h2>
+                    <button onclick="closeNewsletterModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <form id="newsletter-form" onsubmit="handleNewsletterForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                        <input type="text" name="newsletterSubject" required placeholder="Newsletter subject line" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Body *</label>
+                        <textarea name="newsletterBody" rows="5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Write your newsletter content here..."></textarea>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="newsletterPreview" id="newsletter-preview-chk" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <label for="newsletter-preview-chk" class="text-sm text-gray-700">Send me a preview first</label>
+                    </div>
+                    <div id="newsletter-msg" class="text-sm"></div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="closeNewsletterModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">Send Newsletter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900 text-red-700">Send Emergency Alert</h2>
+                    <button onclick="closeAlertModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <form id="alert-form" onsubmit="handleAlertForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alert Type *</label>
+                        <select name="alertType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-sm">
+                            <option value="">Select type</option>
+                            <option value="Safety">Safety</option>
+                            <option value="Weather">Weather</option>
+                            <option value="Community">Community</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Message *</label>
+                        <textarea name="alertMessage" rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-sm" placeholder="Enter your alert message..."></textarea>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="alertUrgent" id="alert-urgent-chk" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                        <label for="alert-urgent-chk" class="text-sm text-gray-700 font-medium text-red-700">Mark as URGENT (sends immediately via SMS)</label>
+                    </div>
+                    <div id="alert-msg" class="text-sm"></div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="closeAlertModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm">Send Alert</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Business Modal -->
+    <div id="add-business-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Add Your Business FREE</h2>
+                    <button onclick="closeAddBusinessModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <form id="add-business-form" onsubmit="handleAddBusinessForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
+                        <input type="text" name="bizName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                        <select name="bizCategory" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                            <option value="">Select category</option>
+                            <option value="restaurant">Restaurant</option>
+                            <option value="retail">Retail</option>
+                            <option value="services">Services</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="automotive">Automotive</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                        <input type="tel" name="bizPhone" required placeholder="(904) 555-0000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                        <input type="text" name="bizAddress" required placeholder="123 Main St, Jacksonville, FL" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                        <textarea name="bizDescription" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm" placeholder="Briefly describe your business..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                        <input type="url" name="bizWebsite" placeholder="https://www.yourbusiness.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div id="add-business-msg" class="text-sm"></div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="closeAddBusinessModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-green text-white rounded-lg hover:bg-green-700 font-medium text-sm">Submit Business</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade to Premium Modal -->
+    <div id="upgrade-premium-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Upgrade to Premium</h2>
+                    <button onclick="closeUpgradePremiumModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="text-center mb-6">
+                    <div class="text-4xl mb-3">⭐</div>
+                    <div class="text-3xl font-bold text-green-600 mb-1">$29<span class="text-lg text-gray-500">/mo</span></div>
+                    <p class="text-gray-500 text-sm">Business Member — Billed monthly</p>
+                </div>
+                <ul class="space-y-2 mb-6 text-sm text-gray-700">
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Featured directory placement</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Analytics dashboard</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Marketing tools &amp; promotions</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Premium rewards catalog access</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Event calendar management</li>
+                </ul>
+                <div class="flex flex-col gap-3">
+                    <button onclick="closeUpgradePremiumModal(); showPage('contact');" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">Contact Us to Upgrade</button>
+                    <button onclick="closeUpgradePremiumModal()" class="w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Maybe Later</button>
+                </div>
             </div>
         </div>
     </div>
