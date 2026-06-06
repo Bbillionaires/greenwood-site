@@ -1078,7 +1078,7 @@
                             </div>
                         </div>
 
-                        <form id="signup-form" class="space-y-4">
+                        <form id="signup-form" class="space-y-4" onsubmit="handleSignUp(event)">
                             <input type="hidden" name="accountType" id="selected-account-type">
                             
                             <div class="grid md:grid-cols-2 gap-4">
@@ -2173,27 +2173,57 @@
         }
 
         // Sign up functionality
-        function handleSignUp(event) {
+        async function handleSignUp(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
-            
-            // Basic validation
+
             const password = formData.get('password');
             const confirmPassword = formData.get('confirmPassword');
-            
-            if (password !== confirmPassword) {
+
+            if (password && confirmPassword && password !== confirmPassword) {
                 alert('Passwords do not match!');
                 return;
             }
-            
-            if (password.length < 8) {
+            if (password && password.length < 8) {
                 alert('Password must be at least 8 characters long!');
                 return;
             }
-            
-            // Simulate successful registration
-            alert('Account created successfully! You can now log in.');
-            showPage('login');
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating Account…'; }
+
+            try {
+                const payload = {
+                    formType: 'signup',
+                    firstName: formData.get('firstName') || '',
+                    lastName: formData.get('lastName') || '',
+                    phone: formData.get('phone') || '',
+                    email: formData.get('email') || '',
+                    accountType: formData.get('accountType') || '',
+                    businessName: formData.get('businessName') || '',
+                    businessCategory: formData.get('businessCategory') || '',
+                    referralProgram: formData.get('referralProgram') || '',
+                    investorWanted: formData.get('investorWanted') || 'No',
+                    verified: formData.get('verified') === 'on',
+                };
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    alert('Account created successfully! You can now log in.');
+                    event.target.reset();
+                    showPage('login');
+                } else {
+                    alert('There was a problem submitting your registration: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error. Please try again.');
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Account'; }
+            }
         }
 
         // Initialize business directory
@@ -2791,19 +2821,94 @@
         }
 
         // ===================== CONTACT FORM =====================
-        function handleContactForm(event) {
+        async function handleContactForm(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
-            const name = formData.get('contactName');
-            alert('Thank you, ' + name + '! Your message has been sent. We will get back to you within 1-2 business days at info@greenwood100.com.');
-            event.target.reset();
+            const name = formData.get('contactName') || '';
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        formType: 'contact',
+                        name: name,
+                        email: formData.get('contactEmail') || '',
+                        subject: formData.get('contactSubject') || '',
+                        message: formData.get('contactMessage') || '',
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    alert('Thank you, ' + name + '! Your message has been sent. We will get back to you within 1-2 business days at info@greenwood100.com.');
+                    event.target.reset();
+                } else {
+                    alert('There was a problem sending your message: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error. Please try again.');
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Message'; }
+            }
         }
 
         // ===================== VOLUNTEER APPLICATION =====================
         function applyToVolunteer(role) {
-            const confirmed = confirm('Apply to volunteer as ' + role + '?\n\nClick OK to confirm your interest and we will contact you at your registered email within 3 business days.');
-            if (confirmed) {
-                alert('Thank you for applying to be a ' + role + '! Our volunteer coordinator will reach out to you soon. You can also email us at info@greenwood100.com.');
+            document.getElementById('volunteer-modal-role').textContent = role;
+            document.getElementById('volunteer-modal-role-input').value = role;
+            // Clear previous messages/values
+            document.getElementById('volunteer-modal-form').reset();
+            document.getElementById('volunteer-modal-role-input').value = role;
+            document.getElementById('volunteer-modal-msg').textContent = '';
+            const modal = document.getElementById('volunteer-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeVolunteerModal() {
+            const modal = document.getElementById('volunteer-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function handleVolunteerForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const msgEl = document.getElementById('volunteer-modal-msg');
+
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+            msgEl.textContent = '';
+
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        formType: 'volunteer',
+                        name: formData.get('volunteerName') || '',
+                        email: formData.get('volunteerEmail') || '',
+                        phone: formData.get('volunteerPhone') || '',
+                        opportunity: formData.get('volunteerRole') || '',
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    msgEl.className = 'mt-2 text-sm text-green-700 font-medium';
+                    msgEl.textContent = 'Application submitted! Our volunteer coordinator will reach out soon.';
+                    event.target.reset();
+                    setTimeout(closeVolunteerModal, 2500);
+                } else {
+                    msgEl.className = 'mt-2 text-sm text-red-600';
+                    msgEl.textContent = 'Error: ' + (data.error || 'Unknown error');
+                }
+            } catch (err) {
+                msgEl.className = 'mt-2 text-sm text-red-600';
+                msgEl.textContent = 'Network error. Please try again.';
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
             }
         }
 
@@ -2958,20 +3063,78 @@
             }
         }
 
-        function handleInvestorInterestForm(event) {
+        async function handleInvestorInterestForm(event) {
             event.preventDefault();
             const business = document.getElementById('investor-interest-business').textContent;
-            closeInvestorInterestModal();
-            alert('Thank you for your interest in ' + business + '!\n\nOur team will connect you with the business owner within 2-3 business days. Please check your email for next steps.\n\nFor immediate inquiries, contact info@greenwood100.com.');
-            event.target.reset();
+            const formData = new FormData(event.target);
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const msgEl = document.getElementById('investor-interest-msg');
+
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+            if (msgEl) msgEl.textContent = '';
+
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        formType: 'investor-interest',
+                        name: formData.get('interestName') || '',
+                        email: formData.get('interestEmail') || '',
+                        investmentRange: formData.get('interestRange') || '',
+                        message: formData.get('interestMessage') || '',
+                        business: business,
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    closeInvestorInterestModal();
+                    alert('Thank you for your interest in ' + business + '!\n\nOur team will connect you with the business owner within 2-3 business days. Please check your email for next steps.');
+                    event.target.reset();
+                } else {
+                    if (msgEl) { msgEl.className = 'mt-2 text-sm text-red-600'; msgEl.textContent = 'Error: ' + (data.error || 'Unknown error'); }
+                }
+            } catch (err) {
+                if (msgEl) { msgEl.className = 'mt-2 text-sm text-red-600'; msgEl.textContent = 'Network error. Please try again.'; }
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Interest'; }
+            }
         }
 
-        function handleInvestorRegistration(event) {
+        async function handleInvestorRegistration(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
-            const name = formData.get('investorName');
-            alert('Thank you for registering as an investor, ' + name + '!\n\nYou have been added to our investor network. We will notify you of new investment opportunities that match your criteria.\n\nFor questions, contact info@greenwood100.com.');
-            event.target.reset();
+            const name = formData.get('investorName') || '';
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const msgEl = document.getElementById('investor-register-msg');
+
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Registering…'; }
+            if (msgEl) msgEl.textContent = '';
+
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        formType: 'investor-register',
+                        name: name,
+                        email: formData.get('investorEmail') || '',
+                        investmentRange: formData.get('investmentRange') || '',
+                        areasOfInterest: formData.get('investorInterest') || '',
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    if (msgEl) { msgEl.className = 'mt-3 text-sm text-green-700 font-medium'; msgEl.textContent = 'Thank you, ' + name + '! You have been added to our investor network. We will notify you of new opportunities.'; }
+                    event.target.reset();
+                } else {
+                    if (msgEl) { msgEl.className = 'mt-3 text-sm text-red-600'; msgEl.textContent = 'Error: ' + (data.error || 'Unknown error'); }
+                }
+            } catch (err) {
+                if (msgEl) { msgEl.className = 'mt-3 text-sm text-red-600'; msgEl.textContent = 'Network error. Please try again.'; }
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Register as Investor'; }
+            }
         }
 
         // ===================== ADMIN COURSE MANAGEMENT =====================
