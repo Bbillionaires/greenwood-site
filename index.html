@@ -69,6 +69,9 @@
 <button data-nav="membership"    onclick="showPage('membership')"    class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Membership</button>
 <button data-nav="news"          onclick="showPage('news')"          class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">News</button>
 <button data-nav="contact"       onclick="showPage('contact')"       class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Contact</button>
+<button data-nav="leaderboard"   onclick="showPage('leaderboard')"   class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Leaderboard</button>
+<button data-nav="investors"     onclick="showPage('investors')"     class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Investors</button>
+<button data-nav="volunteers"    onclick="showPage('volunteers')"    class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Volunteer</button>
 
 <div id="auth-section">
   <button data-nav="login" onclick="showPage('login')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-green transition-colors">Login</button>
@@ -96,6 +99,9 @@
                 <button onclick="showPage('membership'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Membership</button>
                 <button onclick="showPage('news'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">News</button>
                 <button onclick="showPage('contact'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Contact</button>
+                <button onclick="showPage('leaderboard'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Leaderboard</button>
+                <button onclick="showPage('investors'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Investors</button>
+                <button onclick="showPage('volunteers'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Volunteer</button>
                 <div id="mobile-auth-section" class="border-t border-gray-200 pt-2 mt-2">
                     <button onclick="showPage('login'); toggleMobileMenu();" class="block px-3 py-2 text-gray-700 hover:text-brand-green w-full text-left">Login</button>
                 </div>
@@ -702,14 +708,58 @@
                         <!-- Referrals Tab -->
                         <div id="member-referrals-content" class="member-tab-content hidden">
                             <h3 class="text-lg font-semibold mb-4">My Referrals</h3>
-                            <div class="space-y-4">
+                            <!-- Referral Link Section -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-5 mb-6">
+                                <h4 class="font-semibold text-green-800 mb-2">My Referral Link</h4>
+                                <p class="text-sm text-gray-600 mb-3">Share this link to earn 10 points for every person who joins!</p>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <input id="referral-link-input" type="text" readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-mono" value="https://greenwood100.com/join?ref=JDOE5" />
+                                    <button onclick="copyReferralLink()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap">Copy Link</button>
+                                    <button onclick="shareViaEmail()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm whitespace-nowrap">Share via Email</button>
+                                </div>
+                                <div class="grid grid-cols-3 gap-4 text-center mt-4">
+                                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                                        <div class="text-2xl font-bold text-blue-600">47</div>
+                                        <div class="text-xs text-gray-500">Link Clicks</div>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                                        <div class="text-2xl font-bold text-green-600">8</div>
+                                        <div class="text-xs text-gray-500">Sign-Ups</div>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                                        <div class="text-2xl font-bold text-purple-600">80</div>
+                                        <div class="text-xs text-gray-500">Points Earned</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Past Referrals -->
+                            <h4 class="font-medium mb-3 text-gray-700">Referral History</h4>
+                            <div class="space-y-3">
                                 <div class="border rounded-lg p-4">
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-medium">Joe's Coffee Shop</div>
                                             <div class="text-sm text-gray-600">Referred to Sarah M. • Completed</div>
                                         </div>
-                                        <div class="text-green-600 font-medium">+10 points</div>
+                                        <div class="text-green-600 font-medium">+10 pts</div>
+                                    </div>
+                                </div>
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="font-medium">Marcus T. joined via your link</div>
+                                            <div class="text-sm text-gray-600">New member referral • Completed</div>
+                                        </div>
+                                        <div class="text-green-600 font-medium">+10 pts</div>
+                                    </div>
+                                </div>
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="font-medium">Riverside Auto</div>
+                                            <div class="text-sm text-gray-600">Referred to James K. • Pending</div>
+                                        </div>
+                                        <div class="text-yellow-600 font-medium">Pending</div>
                                     </div>
                                 </div>
                             </div>
@@ -763,14 +813,25 @@
                         <!-- Rewards Tab -->
                         <div id="member-rewards-content" class="member-tab-content hidden">
                             <h3 class="text-lg font-semibold mb-4">Rewards & Points</h3>
-                            <div class="grid md:grid-cols-2 gap-6">
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
                                 <div class="border rounded-lg p-4">
                                     <h4 class="font-medium mb-2">Available Points</h4>
-                                    <div class="text-2xl font-bold text-purple-600">125</div>
+                                    <div id="member-points-display" class="text-3xl font-bold text-purple-600">125</div>
+                                    <p class="text-sm text-gray-500 mt-1">Earn more by referring friends and completing courses</p>
                                 </div>
                                 <div class="border rounded-lg p-4">
                                     <h4 class="font-medium mb-2">Redeem Rewards</h4>
-                                    <button class="bg-purple-600 text-white px-4 py-2 rounded">View Catalog</button>
+                                    <p class="text-sm text-gray-600 mb-3">Browse our partner rewards catalog</p>
+                                    <button onclick="openRewardsCatalog()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">View Catalog</button>
+                                    <button onclick="openRewardsCatalog()" class="ml-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Redeem Rewards</button>
+                                </div>
+                            </div>
+                            <div class="border rounded-lg p-4">
+                                <h4 class="font-medium mb-3">How to Earn Points</h4>
+                                <div class="grid md:grid-cols-3 gap-4 text-sm">
+                                    <div class="bg-gray-50 p-3 rounded"><span class="font-bold text-green-600">+10 pts</span> — Business referral</div>
+                                    <div class="bg-gray-50 p-3 rounded"><span class="font-bold text-green-600">+25 pts</span> — Complete a course</div>
+                                    <div class="bg-gray-50 p-3 rounded"><span class="font-bold text-green-600">+5 pts</span> — Event attendance</div>
                                 </div>
                             </div>
                         </div>
@@ -1235,33 +1296,432 @@
     <!-- Grid that JS will populate -->
     <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
   </div>
-
+</section>
 
         <section id="membership" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Membership Plans</h1>
-                <p class="text-xl text-gray-600">Choose the membership level that's right for you.</p>
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Membership Plans</h1>
+                    <p class="text-xl text-gray-600">Choose the membership level that's right for you.</p>
+                </div>
+                <!-- Tier Cards -->
+                <div class="grid md:grid-cols-3 gap-8 mb-16">
+                    <!-- Community Member -->
+                    <div class="bg-white rounded-lg shadow-lg p-8 card-hover border-t-4 border-gray-400">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Community Member</h2>
+                        <div class="text-4xl font-bold text-gray-700 mb-1">Free</div>
+                        <p class="text-gray-500 mb-6">Forever free</p>
+                        <ul class="space-y-3 mb-8 text-sm text-gray-700">
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Business directory listing</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Community news access</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Event calendar viewing</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Referral program (earn points)</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Certificate courses (free)</li>
+                            <li class="flex items-center text-gray-400"><span class="mr-2">✗</span> Priority investor placement</li>
+                            <li class="flex items-center text-gray-400"><span class="mr-2">✗</span> Premium rewards catalog</li>
+                        </ul>
+                        <button onclick="showPage('login')" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 font-semibold">Get Started Free</button>
+                    </div>
+                    <!-- Business Member -->
+                    <div class="bg-white rounded-lg shadow-lg p-8 card-hover border-t-4 border-green-500 relative">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-4 py-1 rounded-full font-semibold">MOST POPULAR</div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Business Member</h2>
+                        <div class="text-4xl font-bold text-green-600 mb-1">$29<span class="text-lg text-gray-500">/mo</span></div>
+                        <p class="text-gray-500 mb-6">Billed monthly</p>
+                        <ul class="space-y-3 mb-8 text-sm text-gray-700">
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Everything in Community</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Featured directory placement</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Analytics dashboard</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Marketing tools & promotions</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Premium rewards catalog access</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Event calendar management</li>
+                            <li class="flex items-center text-gray-400"><span class="mr-2">✗</span> Investor matchmaking</li>
+                        </ul>
+                        <button onclick="showPage('login')" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold">Join as Business Member</button>
+                    </div>
+                    <!-- Association Leader -->
+                    <div class="bg-white rounded-lg shadow-lg p-8 card-hover border-t-4 border-purple-500">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Association Leader</h2>
+                        <div class="text-4xl font-bold text-purple-600 mb-1">$49<span class="text-lg text-gray-500">/mo</span></div>
+                        <p class="text-gray-500 mb-6">Billed monthly</p>
+                        <ul class="space-y-3 mb-8 text-sm text-gray-700">
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Everything in Business</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Neighborhood association hub</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Member management tools</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Event coordination system</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Investor matchmaking access</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Financial tracking dashboard</li>
+                            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Priority support</li>
+                        </ul>
+                        <button onclick="showPage('login')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold">Join as Association Leader</button>
+                    </div>
+                </div>
+                <!-- Benefits Overview -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Why Join Greenwood 100?</h2>
+                    <div class="grid md:grid-cols-4 gap-6 text-center">
+                        <div><div class="text-4xl mb-2">🤝</div><h3 class="font-semibold mb-1">Community Network</h3><p class="text-sm text-gray-600">Connect with 500+ local businesses and residents</p></div>
+                        <div><div class="text-4xl mb-2">🎁</div><h3 class="font-semibold mb-1">Exclusive Rewards</h3><p class="text-sm text-gray-600">Earn points and redeem at local businesses</p></div>
+                        <div><div class="text-4xl mb-2">📚</div><h3 class="font-semibold mb-1">Free Courses</h3><p class="text-sm text-gray-600">Access business and community education courses</p></div>
+                        <div><div class="text-4xl mb-2">💰</div><h3 class="font-semibold mb-1">Investment Access</h3><p class="text-sm text-gray-600">Connect with local investors for your business</p></div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="volunteers" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Volunteer Opportunities</h1>
-                <p class="text-xl text-gray-600">Make a difference in your community through volunteering.</p>
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Volunteer Opportunities</h1>
+                    <p class="text-xl text-gray-600">Make a difference in your community through volunteering.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-start mb-4">
+                            <span class="text-3xl mr-4">📅</span>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-1">Event Coordinator</h3>
+                                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">4–6 hrs/week</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">Plan and coordinate community events, manage RSVPs, and ensure smooth event operations from kickoff to cleanup.</p>
+                        <p class="text-sm text-gray-500 mb-4"><strong>Skills needed:</strong> Organization, communication, event planning</p>
+                        <button onclick="applyToVolunteer('Event Coordinator')" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Apply to Volunteer</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-start mb-4">
+                            <span class="text-3xl mr-4">💼</span>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-1">Business Mentor</h3>
+                                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">2–4 hrs/week</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">Provide guidance and mentorship to local small business owners, helping them grow and navigate challenges.</p>
+                        <p class="text-sm text-gray-500 mb-4"><strong>Skills needed:</strong> Business experience, coaching, entrepreneurship</p>
+                        <button onclick="applyToVolunteer('Business Mentor')" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Apply to Volunteer</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-start mb-4">
+                            <span class="text-3xl mr-4">💻</span>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-1">Tech Support</h3>
+                                <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">3–5 hrs/week</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">Help community members and businesses with technology needs — website setup, social media, and digital literacy workshops.</p>
+                        <p class="text-sm text-gray-500 mb-4"><strong>Skills needed:</strong> IT, web design, patience, teaching</p>
+                        <button onclick="applyToVolunteer('Tech Support')" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Apply to Volunteer</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                        <div class="flex items-start mb-4">
+                            <span class="text-3xl mr-4">🌍</span>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-1">Community Outreach</h3>
+                                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">5–8 hrs/week</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">Engage residents and businesses in community programs, attend neighborhood meetings, and spread the word about Greenwood 100.</p>
+                        <p class="text-sm text-gray-500 mb-4"><strong>Skills needed:</strong> Communication, networking, passion for community</p>
+                        <button onclick="applyToVolunteer('Community Outreach')" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Apply to Volunteer</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover md:col-span-2">
+                        <div class="flex items-start mb-4">
+                            <span class="text-3xl mr-4">✍️</span>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-1">Newsletter Writer</h3>
+                                <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full">2–3 hrs/week</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">Write engaging newsletter content covering community news, business spotlights, upcoming events, and success stories for our members.</p>
+                        <p class="text-sm text-gray-500 mb-4"><strong>Skills needed:</strong> Writing, editing, storytelling, local knowledge</p>
+                        <button onclick="applyToVolunteer('Newsletter Writer')" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Apply to Volunteer</button>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="news" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Community News</h1>
-                <p class="text-xl text-gray-600">Stay updated with the latest community news and events.</p>
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Community News</h1>
+                    <p class="text-xl text-gray-600">Stay updated with the latest community news, events, and business highlights.</p>
+                </div>
+                <div class="flex flex-wrap gap-3 mb-8">
+                    <button onclick="filterNews('all')" id="news-filter-all" class="news-filter bg-brand-green text-white px-4 py-2 rounded-lg font-medium">All</button>
+                    <button onclick="filterNews('events')" id="news-filter-events" class="news-filter bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300">Events</button>
+                    <button onclick="filterNews('business')" id="news-filter-business" class="news-filter bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300">Business</button>
+                    <button onclick="filterNews('community')" id="news-filter-community" class="news-filter bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300">Community</button>
+                </div>
+                <div id="news-cards" class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover news-card" data-category="business">
+                        <div class="bg-brand-green h-2"></div>
+                        <div class="p-6">
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-3 inline-block">Business</span>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Jacksonville Small Business Week Kicks Off</h3>
+                            <p class="text-gray-500 text-sm mb-3">June 1, 2026</p>
+                            <p class="text-gray-600 mb-4">Local entrepreneurs showcase innovations at downtown convention center. Over 150 vendors and startups participated in this year's record-breaking business expo, drawing crowds from across the region.</p>
+                            <button onclick="alert('Full article: Jacksonville Small Business Week saw over 150 vendors, 3 keynote speakers, and $500,000 in deals closed over 3 days. Greenwood 100 members received priority booth access.')" class="text-brand-green hover:text-green-700 font-medium">Read More →</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover news-card" data-category="community">
+                        <div class="bg-blue-500 h-2"></div>
+                        <div class="p-6">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-3 inline-block">Community</span>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">New Community Garden Opens in Riverside</h3>
+                            <p class="text-gray-500 text-sm mb-3">May 28, 2026</p>
+                            <p class="text-gray-600 mb-4">Residents celebrate the opening of a 2-acre community garden funded through Greenwood 100's neighborhood improvement program. Over 80 families have already signed up for garden plots.</p>
+                            <button onclick="alert('Full article: The Riverside Community Garden features 120 individual plots, a communal herb section, composting facilities, and weekly gardening workshops.')" class="text-brand-green hover:text-green-700 font-medium">Read More →</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover news-card" data-category="business">
+                        <div class="bg-yellow-500 h-2"></div>
+                        <div class="p-6">
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full mb-3 inline-block">Business</span>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Local Restaurant Wins State Award</h3>
+                            <p class="text-gray-500 text-sm mb-3">May 20, 2026</p>
+                            <p class="text-gray-600 mb-4">Greenwood 100 member business Maria's Bakery recognized for outstanding community service and authentic culinary excellence at the Florida Small Business Awards in Tallahassee.</p>
+                            <button onclick="alert('Full article: Maria\'s Bakery received the Community Impact award. Owner Maria Gonzalez credited Greenwood 100 referrals for 40% growth in the past year.')" class="text-brand-green hover:text-green-700 font-medium">Read More →</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover news-card" data-category="events">
+                        <div class="bg-purple-500 h-2"></div>
+                        <div class="p-6">
+                            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-3 inline-block">Events</span>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Annual Spring Festival — Save the Date</h3>
+                            <p class="text-gray-500 text-sm mb-3">May 15, 2026</p>
+                            <p class="text-gray-600 mb-4">Greenwood 100's biggest community event returns July 12th! Featuring live music, local food vendors, kids' activities, and the annual business showcase. Free admission for all members.</p>
+                            <button onclick="alert('Full article: Annual Spring Festival — July 12, 2026 at Riverside Park, 10am-8pm. 50+ vendors, 3 music stages. Register your booth at info@greenwood100.com.')" class="text-brand-green hover:text-green-700 font-medium">Read More →</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover news-card md:col-span-2" data-category="community">
+                        <div class="bg-brand-green h-2"></div>
+                        <div class="p-6">
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-3 inline-block">Community</span>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Greenwood 100 Reaches 1,000 Member Milestone</h3>
+                            <p class="text-gray-500 text-sm mb-3">May 5, 2026</p>
+                            <p class="text-gray-600 mb-4">We are thrilled to announce that Greenwood 100 Inc. has officially surpassed 1,000 active members across Jacksonville, with expansion into neighboring counties underway. This milestone reflects the incredible support of our community and the power of neighbors helping neighbors build stronger, more connected communities.</p>
+                            <button onclick="alert('Our 1,000th member received a one-year Business Member upgrade. Greenwood 100 is now expanding to Duval, Clay, and St. Johns counties.')" class="text-brand-green hover:text-green-700 font-medium">Read More →</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="contact" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-6">Contact Us</h1>
-                <p class="text-xl text-gray-600">Get in touch with the Greenwood 100 team.</p>
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Contact Us</h1>
+                    <p class="text-xl text-gray-600">Get in touch with the Greenwood 100 team. We'd love to hear from you.</p>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-12">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
+                        <form onsubmit="handleContactForm(event)" class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                                    <input type="text" name="contactName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="Jane Smith">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                                    <input type="email" name="contactEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="jane@example.com">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                                <input type="text" name="contactSubject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="How can we help?">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                                <textarea name="contactMessage" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="Tell us about your question or inquiry..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-brand-green text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <span class="text-2xl mr-4">📍</span>
+                                    <div>
+                                        <div class="font-semibold text-gray-900">Address</div>
+                                        <div class="text-gray-600">1234 Community Blvd, Suite 200<br>Jacksonville, FL 32202</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="text-2xl mr-4">📞</span>
+                                    <div>
+                                        <div class="font-semibold text-gray-900">Phone</div>
+                                        <div class="text-gray-600">(904) 555-0100</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="text-2xl mr-4">📧</span>
+                                    <div>
+                                        <div class="font-semibold text-gray-900">Email</div>
+                                        <div class="text-gray-600"><a href="mailto:info@greenwood100.com" class="text-brand-green hover:text-green-700">info@greenwood100.com</a></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="text-2xl mr-4">⏰</span>
+                                    <div>
+                                        <div class="font-semibold text-gray-900">Office Hours</div>
+                                        <div class="text-gray-600">Mon–Fri: 9:00 AM – 5:00 PM<br>Saturday: 10:00 AM – 2:00 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4">Follow Us</h2>
+                            <div class="grid grid-cols-2 gap-3">
+                                <a href="#" onclick="alert('Facebook: @Greenwood100Inc'); return false;" class="flex items-center p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                                    <span class="text-2xl mr-3">📘</span><span class="font-medium text-gray-700">Facebook</span>
+                                </a>
+                                <a href="#" onclick="alert('Instagram: @greenwood100inc'); return false;" class="flex items-center p-3 border rounded-lg hover:bg-pink-50 hover:border-pink-300 transition-colors">
+                                    <span class="text-2xl mr-3">📸</span><span class="font-medium text-gray-700">Instagram</span>
+                                </a>
+                                <a href="#" onclick="alert('Twitter/X: @Greenwood100'); return false;" class="flex items-center p-3 border rounded-lg hover:bg-sky-50 hover:border-sky-300 transition-colors">
+                                    <span class="text-2xl mr-3">🐦</span><span class="font-medium text-gray-700">Twitter/X</span>
+                                </a>
+                                <a href="#" onclick="alert('LinkedIn: Greenwood 100 Inc.'); return false;" class="flex items-center p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                                    <span class="text-2xl mr-3">💼</span><span class="font-medium text-gray-700">LinkedIn</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leaderboard Page -->
+        <section id="leaderboard" class="page-section hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Community Leaderboard</h1>
+                    <p class="text-xl text-gray-600">Top members ranked by reward points earned through referrals, courses, and community participation.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="bg-brand-green text-white px-6 py-4">
+                        <div class="grid grid-cols-12 text-sm font-semibold">
+                            <div class="col-span-1">Rank</div>
+                            <div class="col-span-5">Member</div>
+                            <div class="col-span-2 text-center">Points</div>
+                            <div class="col-span-2 text-center">Referrals</div>
+                            <div class="col-span-2 text-center">Courses</div>
+                        </div>
+                    </div>
+                    <div id="leaderboard-list" class="divide-y divide-gray-100">
+                        <!-- Populated by initLeaderboard() -->
+                    </div>
+                </div>
+                <p class="text-center text-gray-500 text-sm mt-4">Leaderboard updates weekly. Earn more points by referring new members, completing courses, and attending events.</p>
+            </div>
+        </section>
+
+        <!-- Investor Portal Page -->
+        <section id="investors" class="page-section hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Investor Portal</h1>
+                    <p class="text-xl text-gray-600">Connect with local businesses seeking investment and funding opportunities in our community.</p>
+                </div>
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Businesses Seeking Investment</h2>
+                        <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Maria's Bakery Expansion</h3>
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Restaurant</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-brand-green">$45,000</div>
+                                    <div class="text-xs text-gray-500">Funding Goal</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Award-winning bakery seeking investment to open a second location in Springfield neighborhood. 4 years of profitable operations, loyal customer base, and proven demand for expansion. Investment covers leasehold improvements and equipment.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-500">Category: Restaurant • Owner: Maria Gonzalez</div>
+                                <button onclick="showInvestorInterestModal('Maria\'s Bakery Expansion')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">Express Interest</button>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Green Thumb Landscaping Fleet</h3>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Services</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-brand-green">$28,000</div>
+                                    <div class="text-xs text-gray-500">Funding Goal</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Established landscaping company with 50+ residential clients and 12 commercial contracts. Seeking investment to purchase two additional service vehicles and hire 3 more technicians to meet growing demand. ROI projected within 18 months.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-500">Category: Services • Owner: James Park</div>
+                                <button onclick="showInvestorInterestModal('Green Thumb Landscaping Fleet')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">Express Interest</button>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">The Book Nook Digital Expansion</h3>
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Retail</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-brand-green">$15,000</div>
+                                    <div class="text-xs text-gray-500">Funding Goal</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Independent bookstore launching an e-commerce platform and digital lending program to serve the wider Jacksonville community. Investment covers website development, digital inventory system, and initial online marketing campaign.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-500">Category: Retail • Owner: Patricia Williams</div>
+                                <button onclick="showInvestorInterestModal('The Book Nook Digital Expansion')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">Express Interest</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Investor Registration -->
+                    <div>
+                        <div class="bg-white rounded-lg shadow-lg p-6 sticky top-24">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4">Register as an Investor</h2>
+                            <p class="text-gray-600 text-sm mb-6">Join our investor network and get early access to vetted local business opportunities.</p>
+                            <form onsubmit="handleInvestorRegistration(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                    <input type="text" name="investorName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                    <input type="email" name="investorEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Investment Range</label>
+                                    <select name="investmentRange" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                                        <option>$5,000 – $15,000</option>
+                                        <option>$15,000 – $50,000</option>
+                                        <option>$50,000 – $100,000</option>
+                                        <option>$100,000+</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Areas of Interest</label>
+                                    <select name="investorInterest" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                                        <option>All Categories</option>
+                                        <option>Restaurant &amp; Food</option>
+                                        <option>Retail</option>
+                                        <option>Services</option>
+                                        <option>Healthcare</option>
+                                        <option>Technology</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="w-full bg-brand-green text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors text-sm">Register as Investor</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
@@ -1394,6 +1854,8 @@
                     initializeBusinessDirectory();
                 } else if (pageId === 'courses') {
                     displayCourses('all');
+                } else if (pageId === 'leaderboard') {
+                    initLeaderboard();
                 }
                 
                 // Close mobile menu
@@ -1831,10 +2293,49 @@
             `).join('');
         }
 
-        // Placeholder functions for various features
+        // Business filtering functionality
         function filterBusinesses() {
-            alert('Business filtering functionality would be implemented here.');
+            const searchText = (document.getElementById('business-search').value || '').toLowerCase();
+            const category = (document.getElementById('category-filter').value || '').toLowerCase();
+            const listings = document.getElementById('business-listings');
+            if (!listings) return;
+            const cards = listings.querySelectorAll('.bg-white');
+            let visible = 0;
+            cards.forEach(card => {
+                const name = (card.querySelector('h3') ? card.querySelector('h3').textContent : '').toLowerCase();
+                const desc = (card.querySelector('p') ? card.querySelector('p').textContent : '').toLowerCase();
+                const badge = (card.querySelector('span') ? card.querySelector('span').textContent : '').toLowerCase();
+                const matchSearch = !searchText || name.includes(searchText) || desc.includes(searchText);
+                const matchCat = !category || badge.includes(category);
+                if (matchSearch && matchCat) {
+                    card.style.display = '';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            if (visible === 0) {
+                const noResults = document.getElementById('no-results-msg');
+                if (!noResults) {
+                    const msg = document.createElement('p');
+                    msg.id = 'no-results-msg';
+                    msg.className = 'col-span-3 text-center text-gray-500 py-8';
+                    msg.textContent = 'No businesses match your search. Try different keywords or clear the filters.';
+                    listings.appendChild(msg);
+                }
+            } else {
+                const noResults = document.getElementById('no-results-msg');
+                if (noResults) noResults.remove();
+            }
         }
+
+        // Also run filter on input changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('business-search');
+            if (searchInput) searchInput.addEventListener('input', filterBusinesses);
+            const catFilter = document.getElementById('category-filter');
+            if (catFilter) catFilter.addEventListener('change', filterBusinesses);
+        });
 
         function contactBusiness(businessName) {
             alert(`Contact information for ${businessName} would be displayed here, or a contact form would open.`);
@@ -2255,51 +2756,309 @@
                             OFFICIAL<br>SEAL
                         </div>
                     </div>
-                    
                     <script>
-                        // Auto-print functionality
                         window.onload = function() {
-                            setTimeout(function() {
-                                window.print();
-                            }, 1000);
+                            setTimeout(function() { window.print(); }, 1000);
                         };
-                    </script>
+                    <\/script>
+                </body>
+                </html>
+            `;
+            certificateWindow.document.write(certificateHTML);
+            certificateWindow.document.close();
+        }
 
-<!-- Add Business Modal -->
-<div id="add-business-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-  ... (entire modal HTML here)
-</div>
-<!-- End Add Business Modal -->
+        // ===================== NEWS FILTERING =====================
+        function filterNews(category) {
+            const filters = document.querySelectorAll('.news-filter');
+            filters.forEach(btn => {
+                btn.classList.remove('bg-brand-green', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            const activeFilter = document.getElementById('news-filter-' + category);
+            if (activeFilter) {
+                activeFilter.classList.remove('bg-gray-200', 'text-gray-700');
+                activeFilter.classList.add('bg-brand-green', 'text-white');
+            }
+            const cards = document.querySelectorAll('.news-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
 
-<!-- Navigation + Modal Control Script -->
-<!-- other JavaScript above here -->
+        // ===================== CONTACT FORM =====================
+        function handleContactForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const name = formData.get('contactName');
+            alert('Thank you, ' + name + '! Your message has been sent. We will get back to you within 1-2 business days at info@greenwood100.com.');
+            event.target.reset();
+        }
 
-<script>
-(() => {
-  window.showPage = function (id) {
-    // Hide all sections
-    document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
+        // ===================== VOLUNTEER APPLICATION =====================
+        function applyToVolunteer(role) {
+            const confirmed = confirm('Apply to volunteer as ' + role + '?\n\nClick OK to confirm your interest and we will contact you at your registered email within 3 business days.');
+            if (confirmed) {
+                alert('Thank you for applying to be a ' + role + '! Our volunteer coordinator will reach out to you soon. You can also email us at info@greenwood100.com.');
+            }
+        }
 
-    // Show selected section
-    const el = document.getElementById(id);
-    if (el) {
-      el.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+        // ===================== REWARDS SYSTEM =====================
+        let memberPoints = 125;
 
-    // Close mobile menu if present
-    const mm = document.getElementById('mobile-menu');
-    if (mm) mm.classList.add('hidden');
+        const rewardsCatalog = [
+            { id: 1, title: '$5 Coffee Voucher', partner: "Joe's Coffee", cost: 25, icon: '☕', description: 'Enjoy a free coffee or hot beverage at any Joe\'s Coffee location.' },
+            { id: 2, title: 'Free Oil Change Discount', partner: 'Riverside Auto', cost: 50, icon: '🛠️', description: '50% off your next oil change at Riverside Auto Repair.' },
+            { id: 3, title: 'Community Event Ticket', partner: 'Greenwood 100', cost: 75, icon: '🎟️', description: 'One free ticket to any Greenwood 100 ticketed community event.' },
+            { id: 4, title: '$15 Restaurant Gift Card', partner: "Benny's Grill", cost: 100, icon: '🍔', description: '$15 gift card redeemable at any participating local restaurant.' },
+            { id: 5, title: 'Premium Membership Upgrade (1 Month)', partner: 'Greenwood 100', cost: 200, icon: '⭐', description: 'One month free upgrade to Business Member tier with all benefits.' }
+        ];
 
-    // Highlight active nav button
-    document.querySelectorAll('[data-nav]').forEach(b => b.classList.remove('text-brand-green'));
-    const active = document.querySelector(`[data-nav="${id}"]`);
-    if (active) active.classList.add('text-brand-green');
-  };
+        function openRewardsCatalog() {
+            const modal = document.getElementById('rewards-catalog-modal');
+            if (modal) {
+                renderRewardsCatalog();
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
 
-  // Show home section when page first loads
-  document.addEventListener('DOMContentLoaded', () => showPage('home'));
-})();
-</script>
+        function closeRewardsCatalog() {
+            const modal = document.getElementById('rewards-catalog-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function renderRewardsCatalog() {
+            const container = document.getElementById('rewards-items');
+            if (!container) return;
+            const pts = memberPoints;
+            container.innerHTML = rewardsCatalog.map(item => `
+                <div class="border rounded-lg p-4 flex items-start gap-4 ${pts >= item.cost ? '' : 'opacity-60'}">
+                    <div class="text-3xl">${item.icon}</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-900">${item.title}</div>
+                        <div class="text-sm text-gray-500 mb-1">${item.partner}</div>
+                        <div class="text-sm text-gray-600 mb-2">${item.description}</div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-brand-green font-bold">${item.cost} pts</span>
+                            <button onclick="redeemReward(${item.id})" ${pts >= item.cost ? '' : 'disabled'} class="px-4 py-1.5 rounded-lg text-sm font-medium ${pts >= item.cost ? 'bg-brand-green text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}">
+                                ${pts >= item.cost ? 'Redeem' : 'Not enough points'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('catalog-points-display').textContent = pts + ' pts available';
+        }
+
+        function redeemReward(itemId) {
+            const item = rewardsCatalog.find(r => r.id === itemId);
+            if (!item) return;
+            if (memberPoints < item.cost) {
+                alert('You don\'t have enough points to redeem this reward. You need ' + item.cost + ' points but have ' + memberPoints + '.');
+                return;
+            }
+            memberPoints -= item.cost;
+            const code = generateRedemptionCode();
+            // Update points displays
+            const displays = document.querySelectorAll('#member-points-display');
+            displays.forEach(d => d.textContent = memberPoints);
+            closeRewardsCatalog();
+            alert('Reward redeemed!\n\nItem: ' + item.title + '\nPartner: ' + item.partner + '\nRedemption Code: ' + code + '\n\nShow this code at the partner location. A confirmation has been sent to your email. Remaining points: ' + memberPoints);
+        }
+
+        function generateRedemptionCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = 'GW-';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // ===================== REFERRAL LINK =====================
+        function copyReferralLink() {
+            const input = document.getElementById('referral-link-input');
+            if (input) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    alert('Referral link copied to clipboard!\n\n' + input.value + '\n\nShare it with friends and earn 10 points for each person who joins!');
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                    alert('Referral link copied!\n\n' + input.value);
+                });
+            }
+        }
+
+        function shareViaEmail() {
+            const link = document.getElementById('referral-link-input') ? document.getElementById('referral-link-input').value : 'https://greenwood100.com/join?ref=MEMBER';
+            const subject = encodeURIComponent('Join me on Greenwood 100 - Community Platform');
+            const body = encodeURIComponent('Hi!\n\nI\'m a member of Greenwood 100 Inc., a community platform connecting local businesses and residents in Jacksonville. I think you\'d love it!\n\nJoin using my referral link and we both earn bonus points:\n' + link + '\n\nSee you there!\n');
+            window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+        }
+
+        // ===================== LEADERBOARD =====================
+        const leaderboardData = [
+            { rank: 1, name: 'Marcus T.', initials: 'MT', points: 1250, referrals: 42, courses: 8 },
+            { rank: 2, name: 'Angela R.', initials: 'AR', points: 1080, referrals: 35, courses: 7 },
+            { rank: 3, name: 'James W.', initials: 'JW', points: 940, referrals: 28, courses: 6 },
+            { rank: 4, name: 'Sarah L.', initials: 'SL', points: 875, referrals: 25, courses: 5 },
+            { rank: 5, name: 'David C.', initials: 'DC', points: 720, referrals: 20, courses: 4 },
+            { rank: 6, name: 'Lisa M.', initials: 'LM', points: 610, referrals: 18, courses: 4 },
+            { rank: 7, name: 'Robert K.', initials: 'RK', points: 525, referrals: 15, courses: 3 },
+            { rank: 8, name: 'Patricia N.', initials: 'PN', points: 480, referrals: 12, courses: 3 },
+            { rank: 9, name: 'John D.', initials: 'JD', points: 125, referrals: 8, courses: 2 },
+            { rank: 10, name: 'Maria G.', initials: 'MG', points: 310, referrals: 9, courses: 2 }
+        ];
+
+        function initLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            if (!list) return;
+            const rankColors = ['bg-yellow-400', 'bg-gray-300', 'bg-orange-400'];
+            list.innerHTML = leaderboardData.map((member, idx) => `
+                <div class="grid grid-cols-12 items-center px-6 py-4 hover:bg-gray-50 transition-colors ${idx < 3 ? 'bg-green-50' : ''}">
+                    <div class="col-span-1 font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-500' : 'text-gray-600'}">
+                        ${idx < 3 ? ['🥇','🥈','🥉'][idx] : member.rank}
+                    </div>
+                    <div class="col-span-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full ${rankColors[idx] || 'bg-brand-green'} flex items-center justify-center text-white font-bold text-sm">
+                            ${member.initials}
+                        </div>
+                        <span class="font-medium text-gray-900">${member.name}</span>
+                    </div>
+                    <div class="col-span-2 text-center font-bold text-brand-green">${member.points.toLocaleString()}</div>
+                    <div class="col-span-2 text-center text-gray-600">${member.referrals}</div>
+                    <div class="col-span-2 text-center text-gray-600">${member.courses}</div>
+                </div>
+            `).join('');
+        }
+
+        // ===================== INVESTOR INTEREST MODAL =====================
+        function showInvestorInterestModal(businessName) {
+            document.getElementById('investor-interest-business').textContent = businessName;
+            const modal = document.getElementById('investor-interest-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeInvestorInterestModal() {
+            const modal = document.getElementById('investor-interest-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function handleInvestorInterestForm(event) {
+            event.preventDefault();
+            const business = document.getElementById('investor-interest-business').textContent;
+            closeInvestorInterestModal();
+            alert('Thank you for your interest in ' + business + '!\n\nOur team will connect you with the business owner within 2-3 business days. Please check your email for next steps.\n\nFor immediate inquiries, contact info@greenwood100.com.');
+            event.target.reset();
+        }
+
+        function handleInvestorRegistration(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const name = formData.get('investorName');
+            alert('Thank you for registering as an investor, ' + name + '!\n\nYou have been added to our investor network. We will notify you of new investment opportunities that match your criteria.\n\nFor questions, contact info@greenwood100.com.');
+            event.target.reset();
+        }
+
+        // ===================== ADMIN COURSE MANAGEMENT =====================
+        function showCourseUploadForm() {
+            const modal = document.getElementById('course-upload-modal');
+            if (modal) { modal.classList.remove('hidden'); }
+        }
+
+        function closeCourseUploadForm() {
+            const modal = document.getElementById('course-upload-modal');
+            if (modal) { modal.classList.add('hidden'); }
+        }
+
+        function handleCourseUpload(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const title = formData.get('courseTitle');
+            closeCourseUploadForm();
+            alert('Course "' + title + '" has been uploaded successfully and is now available to members!');
+            event.target.reset();
+        }
+
+        function editCourse(courseName) {
+            alert('Edit course: ' + courseName + '\n\nThis would open a form pre-filled with the course details for editing.');
+        }
+
+        function toggleCourseStatus(courseName) {
+            alert('Course "' + courseName + '" status toggled. In production this would activate/deactivate the course in the system.');
+        }
+
+        // Initialize leaderboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initLeaderboard();
+        });
+
+    </script>
+
+    <!-- Rewards Catalog Modal -->
+    <div id="rewards-catalog-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Rewards Catalog</h2>
+                    <button onclick="closeRewardsCatalog()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Points balance: <span id="catalog-points-display" class="font-bold text-purple-600">125 pts</span></p>
+                <div id="rewards-items" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investor Interest Modal -->
+    <div id="investor-interest-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Express Interest</h2>
+                    <button onclick="closeInvestorInterestModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <p class="text-gray-600 mb-1 text-sm">Interested in:</p>
+                <p class="font-semibold text-brand-green mb-4" id="investor-interest-business"></p>
+                <form onsubmit="handleInvestorInterestForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                        <input type="text" name="interestName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                        <input type="email" name="interestEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Investment Range</label>
+                        <select name="interestRange" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                            <option>$5,000 – $15,000</option>
+                            <option>$15,000 – $50,000</option>
+                            <option>$50,000+</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Message (optional)</label>
+                        <textarea name="interestMessage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm" placeholder="Tell the business owner about your interest..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-brand-green text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">Submit Interest</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
