@@ -2651,6 +2651,22 @@
                 const cat = (r['Category'] || 'General').replace(/</g, '&lt;');
                 const email = (r['Email'] || '').replace(/</g, '&lt;');
                 const ts = r['Timestamp'] ? new Date(r['Timestamp']).toLocaleString() : '';
+                // Build a biz object for admin edit — check localStorage for extra fields (image, video)
+                const approvedEntry = loadApprovedBusinesses().find(x => String(x.id) === String(rowId)) || {};
+                const adminBizObj = JSON.stringify({
+                    id: rowId,
+                    name: r['Business Name'] || '',
+                    phone: r['Phone'] || '',
+                    email: r['Email'] || '',
+                    address: r['Address'] || '',
+                    description: r['Description'] || '',
+                    website: r['Website'] || '',
+                    category: r['Category'] || '',
+                    investorWanted: r['Investor Wanted'] || 'No',
+                    ownerEmail: r['Email'] || '',
+                    imageData: approvedEntry.imageData || '',
+                    videoUrl: approvedEntry.videoUrl || '',
+                }).replace(/"/g, '&quot;');
                 return `
                 <div class="flex items-start justify-between p-4 border-2 ${colors} rounded-lg gap-4">
                     <div class="flex-1 min-w-0">
@@ -2666,16 +2682,16 @@
                         ${status === 'Pending' ? `
                         <button onclick="adminUpdateStatus('${rowId}','Approved')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Approve</button>
                         <button onclick="adminUpdateStatus('${rowId}','Rejected')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Reject</button>
-                        <button data-edit-row-id="${rowId}" onclick="openEditListingModalById(this.dataset.editRowId)" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>
+                        <button data-bizobj="${adminBizObj}" onclick="openEditListingModal(JSON.parse(this.dataset.bizobj))" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>
                         ` : status === 'Approved' ? (() => {
                             const approved = loadApprovedBusinesses();
                             const entry = approved.find(x => String(x.id) === String(rowId));
                             const isVerified = entry && entry.verified;
                             return `
                         <button onclick="adminVerifyBusiness('${rowId}')" class="${isVerified ? 'bg-yellow-500' : 'bg-blue-600'} text-white px-3 py-1 rounded text-sm hover:opacity-90">${isVerified ? '⭐ Verified' : 'Verify'}</button>
-                        <button data-edit-row-id="${rowId}" onclick="openEditListingModalById(this.dataset.editRowId)" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>
+                        <button data-bizobj="${adminBizObj}" onclick="openEditListingModal(JSON.parse(this.dataset.bizobj))" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>
                         <button onclick="adminDeleteListing('${rowId}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>`;
-                        })() : `<button data-edit-row-id="${rowId}" onclick="openEditListingModalById(this.dataset.editRowId)" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>`}
+                        })() : `<button data-bizobj="${adminBizObj}" onclick="openEditListingModal(JSON.parse(this.dataset.bizobj))" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>`}
                     </div>
                 </div>`;
             }).join('');
