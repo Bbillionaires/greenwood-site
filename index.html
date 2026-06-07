@@ -2581,7 +2581,14 @@
                         ${status === 'Pending' ? `
                         <button onclick="adminUpdateStatus('${rowId}','Approved')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Approve</button>
                         <button onclick="adminUpdateStatus('${rowId}','Rejected')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Reject</button>
-                        ` : `<span class="text-xs text-gray-400">No actions</span>`}
+                        ` : status === 'Approved' ? (() => {
+                            const approved = loadApprovedBusinesses();
+                            const entry = approved.find(x => String(x.id) === String(rowId));
+                            const isVerified = entry && entry.verified;
+                            return `
+                        <button onclick="adminVerifyBusiness('${rowId}')" class="${isVerified ? 'bg-yellow-500' : 'bg-blue-600'} text-white px-3 py-1 rounded text-sm hover:opacity-90">${isVerified ? '⭐ Verified' : 'Verify'}</button>
+                        <button onclick="adminDeleteListing('${rowId}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>`;
+                        })() : `<span class="text-xs text-gray-400">—</span>`}
                     </div>
                 </div>`;
             }).join('');
@@ -2596,10 +2603,24 @@
             localStorage.setItem('gw100_approved_businesses', JSON.stringify(arr));
         }
 
+        // Reviews storage
+        function loadReviews(bizId) {
+            try { return JSON.parse(localStorage.getItem('gw100_reviews_' + bizId) || '[]'); } catch(e) { return []; }
+        }
+        function saveReviews(bizId, arr) {
+            localStorage.setItem('gw100_reviews_' + bizId, JSON.stringify(arr));
+        }
+        function calcRating(bizId, baseRating, baseCount) {
+            const reviews = loadReviews(bizId);
+            if (!reviews.length) return { rating: baseRating, count: baseCount };
+            const total = reviews.reduce((s, r) => s + r.stars, 0);
+            const allCount = baseCount + reviews.length;
+            const avg = ((baseRating * baseCount) + total) / allCount;
+            return { rating: Math.round(avg * 10) / 10, count: allCount };
+        }
+
         async function adminUpdateStatus(rowId, newStatus) {
             const usingAppsScript = SUBMIT_URL !== '/api/submit';
-
-            // Find the business record before updating so we can add it to the directory
             const allPending = loadPendingBusinesses();
             const record = allPending.find(x => String(x.id) === String(rowId));
 
@@ -2615,34 +2636,32 @@
                 }
             }
 
-            // Always update localStorage pending list status
             const list = loadPendingBusinesses();
             const b = list.find(x => String(x.id) === String(rowId));
             if (b) { b.status = newStatus; savePendingBusinesses(list); }
 
-            // If approved, add to the public directory
             if (newStatus === 'Approved') {
                 const biz = b || record;
                 if (biz && biz.businessName) {
                     const approved = loadApprovedBusinesses();
-                    // Avoid duplicates
                     if (!approved.find(x => String(x.id) === String(rowId))) {
                         approved.push({
-                            id: rowId,
+                            id: String(rowId),
                             name: biz.businessName,
                             category: (biz.category || 'general').toLowerCase(),
                             description: biz.description || `${biz.businessName} — community business member.`,
-                            rating: 5.0,
-                            reviews: 0,
+                            baseRating: 5.0,
+                            baseReviews: 0,
                             phone: biz.phone || '',
                             address: biz.address || 'Jacksonville, FL',
+                            verified: false,
+                            isUserSubmitted: true,
                         });
                         saveApprovedBusinesses(approved);
                     }
                 }
                 showToast('Business approved and added to directory!', '#2d6a2d');
             } else {
-                // If rejected, remove from approved list if it was there
                 const approved = loadApprovedBusinesses().filter(x => String(x.id) !== String(rowId));
                 saveApprovedBusinesses(approved);
                 showToast('Business rejected.', '#dc2626');
@@ -2651,9 +2670,74 @@
             refreshAdminBusinessList();
         }
 
-        // Legacy aliases kept so old references don't break
+        function adminVerifyBusiness(rowId) {
+            const approved = loadApprovedBusinesses();
+            const b = approved.find(x => String(x.id) === String(rowId));
+            if (b) {
+                b.verified = !b.verified;
+                saveApprovedBusinesses(approved);
+                showToast(b.verified ? '✅ Business verified!' : 'Verification removed.', '#2d6a2d');
+                refreshAdminBusinessList();
+                // Refresh directory if open
+                if (currentPage === 'directory') initializeBusinessDirectory();
+            }
+        }
+
+        function adminDeleteListing(rowId) {
+            if (!confirm('Remove this business from the public directory?')) return;
+            const approved = loadApprovedBusinesses().filter(x => String(x.id) !== String(rowId));
+            saveApprovedBusinesses(approved);
+            // Also mark as rejected in pending list
+            const list = loadPendingBusinesses();
+            const b = list.find(x => String(x.id) === String(rowId));
+            if (b) { b.status = 'Removed'; savePendingBusinesses(list); }
+            showToast('Listing removed from directory.', '#dc2626');
+            refreshAdminBusinessList();
+            if (currentPage === 'directory') initializeBusinessDirectory();
+        }
+
+        // Legacy aliases
         function adminApproveBusiness(id) { adminUpdateStatus(id, 'Approved'); }
         function adminRejectBusiness(id) { adminUpdateStatus(id, 'Rejected'); }
+
+        // Review modal
+        let _reviewBizId = null;
+        function openReviewModal(bizId, bizName) {
+            if (!currentUser) { showToast('Please log in to write a review.', '#dc2626'); showPage('login'); return; }
+            _reviewBizId = bizId;
+            document.getElementById('review-biz-name').textContent = bizName;
+            document.getElementById('review-stars-input').value = '';
+            document.getElementById('review-text-input').value = '';
+            document.getElementById('review-msg').textContent = '';
+            setReviewStars(0);
+            document.getElementById('review-modal').classList.remove('hidden');
+            document.getElementById('review-modal').classList.add('flex');
+        }
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.add('hidden');
+            document.getElementById('review-modal').classList.remove('flex');
+            _reviewBizId = null;
+        }
+        function setReviewStars(n) {
+            document.getElementById('review-stars-input').value = n;
+            ['r1','r2','r3','r4','r5'].forEach((id, i) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = i < n ? '★' : '☆';
+            });
+        }
+        function submitReview() {
+            const stars = parseInt(document.getElementById('review-stars-input').value) || 0;
+            const text = (document.getElementById('review-text-input').value || '').trim();
+            const msgEl = document.getElementById('review-msg');
+            if (!stars) { msgEl.className = 'text-sm text-red-600'; msgEl.textContent = 'Please select a star rating.'; return; }
+            if (!text) { msgEl.className = 'text-sm text-red-600'; msgEl.textContent = 'Please write a review.'; return; }
+            const reviews = loadReviews(_reviewBizId);
+            reviews.push({ stars, text, author: currentUser.email.split('@')[0], date: new Date().toLocaleDateString() });
+            saveReviews(_reviewBizId, reviews);
+            closeReviewModal();
+            showToast('Review submitted! Thank you.', '#2d6a2d');
+            if (currentPage === 'directory') initializeBusinessDirectory();
+        }
 
         // Initialize business directory
         function initializeBusinessDirectory() {
@@ -2720,40 +2804,53 @@
                 }
             ];
             
-            const allBusinesses = [...sampleBusinesses, ...approvedBusinesses];
-            businessListings.innerHTML = allBusinesses.map(business => `
-                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-semibold text-gray-900">${business.name}</h3>
-                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full capitalize">${business.category}</span>
-                    </div>
-                    <p class="text-gray-600 mb-4">${business.description}</p>
-                    <div class="flex items-center mb-3">
-                        <div class="flex text-yellow-400 mr-2">
-                            ${'★'.repeat(Math.floor(business.rating))}${'☆'.repeat(5 - Math.floor(business.rating))}
+            const allBusinesses = [
+                ...sampleBusinesses.map(b => ({ ...b, id: 'sample_' + b.name.replace(/\W/g,''), baseRating: b.rating, baseReviews: b.reviews, verified: true, isUserSubmitted: false })),
+                ...approvedBusinesses
+            ];
+
+            businessListings.innerHTML = allBusinesses.map(business => {
+                const bizId = String(business.id || business.name);
+                const { rating, count } = calcRating(bizId, business.baseRating || business.rating || 5, business.baseReviews || business.reviews || 0);
+                const stars = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+                const verifiedBadge = business.verified
+                    ? `<span class="ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">⭐ Verified</span>`
+                    : '';
+                const safeId = bizId.replace(/'/g, "\\'");
+                const safeName = (business.name||'').replace(/'/g, "\\'");
+                const safeDesc = (business.description||'').replace(/'/g, "\\'");
+                const safePhone = (business.phone||'').replace(/'/g, "\\'");
+                const safeAddr = (business.address||'').replace(/'/g, "\\'");
+                return `
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover" data-bizid="${bizId}" data-category="${business.category}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">${business.name}${verifiedBadge}</h3>
                         </div>
-                        <span class="text-sm text-gray-600">${business.rating} (${business.reviews} reviews)</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full capitalize shrink-0 ml-2">${business.category}</span>
+                    </div>
+                    <p class="text-gray-600 mb-3">${business.description}</p>
+                    <div class="flex items-center mb-3">
+                        <div class="flex text-yellow-400 mr-2">${stars}</div>
+                        <span class="text-sm text-gray-600">${rating} (${count} review${count !== 1 ? 's' : ''})</span>
                     </div>
                     <div class="space-y-1 text-sm text-gray-500 mb-4">
-                        <div class="flex items-center">
-                            <span class="mr-2">📞</span>
-                            <span>${business.phone}</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="mr-2">📍</span>
-                            <span>${business.address}</span>
-                        </div>
+                        ${business.phone ? `<div class="flex items-center"><span class="mr-2">📞</span><span>${business.phone}</span></div>` : ''}
+                        ${business.address ? `<div class="flex items-center"><span class="mr-2">📍</span><span>${business.address}</span></div>` : ''}
                     </div>
-                    <div class="flex space-x-2">
-                        <button onclick="contactBusiness(this)" data-bizname="${business.name}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="contactBusiness(this)" data-bizname="${business.name}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-brand-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1 text-sm">
                             Contact
                         </button>
-                        <button onclick="viewBusinessDetails(this)" data-bizname="${business.name}" data-bizdesc="${business.description}" data-bizrating="${business.rating}" data-bizreviews="${business.reviews}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                        <button onclick="openReviewModal('${safeId}','${safeName}')" class="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                            ✍️ Review
+                        </button>
+                        <button onclick="viewBusinessDetails(this)" data-bizname="${business.name}" data-bizdesc="${business.description}" data-bizrating="${rating}" data-bizreviews="${count}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" data-bizid="${bizId}" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                             Details
                         </button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // Business filtering functionality
@@ -2823,11 +2920,34 @@
             const reviews = btn.dataset.bizreviews;
             const phone = btn.dataset.bizphone;
             const address = btn.dataset.bizaddress;
+            const bizId = btn.dataset.bizid || btn.closest('[data-bizid]')?.dataset.bizid || name;
+
             document.getElementById('biz-details-name').textContent = name;
             document.getElementById('biz-details-desc').textContent = desc;
-            document.getElementById('biz-details-rating').textContent = `★ ${rating} (${reviews} reviews)`;
+            document.getElementById('biz-details-rating').textContent = `★ ${rating} (${reviews} review${reviews != 1 ? 's' : ''})`;
             document.getElementById('biz-details-phone').textContent = phone;
             document.getElementById('biz-details-address').textContent = address;
+
+            // Render user reviews
+            const userReviews = loadReviews(bizId);
+            const reviewsContainer = document.getElementById('biz-details-reviews');
+            if (reviewsContainer) {
+                reviewsContainer.innerHTML = userReviews.length ? userReviews.map(r => `
+                    <div class="border-t pt-3 mt-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-yellow-400">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span>
+                            <span class="text-xs text-gray-500">${r.author} · ${r.date}</span>
+                        </div>
+                        <p class="text-sm text-gray-700">${r.text}</p>
+                    </div>`).join('') : '<p class="text-sm text-gray-400 mt-2">No reviews yet. Be the first!</p>';
+            }
+
+            // Store bizId on write-review button in modal
+            const writeBtn = document.getElementById('biz-details-write-review');
+            if (writeBtn) {
+                writeBtn.onclick = () => { closeBizDetailsModal(); openReviewModal(bizId, name); };
+            }
+
             document.getElementById('biz-details-modal').classList.remove('hidden');
             document.getElementById('biz-details-modal').classList.add('flex');
         }
@@ -4331,7 +4451,7 @@
 
     <!-- Business Details Modal -->
     <div id="biz-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-900">Business Details</h3>
                 <button onclick="closeBizDetailsModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
@@ -4339,11 +4459,46 @@
             <h4 id="biz-details-name" class="text-lg font-semibold text-brand-green mb-2"></h4>
             <p id="biz-details-rating" class="text-yellow-500 font-medium mb-3"></p>
             <p id="biz-details-desc" class="text-gray-600 mb-4"></p>
-            <div class="space-y-2 text-gray-700 text-sm">
+            <div class="space-y-2 text-gray-700 text-sm mb-4">
                 <div class="flex items-center gap-2"><span>📞</span><span id="biz-details-phone"></span></div>
                 <div class="flex items-center gap-2"><span>📍</span><span id="biz-details-address"></span></div>
             </div>
-            <button onclick="closeBizDetailsModal()" class="mt-6 w-full bg-brand-green text-white py-2 rounded-lg hover:bg-green-700">Close</button>
+            <div id="biz-details-reviews" class="mb-4"></div>
+            <div class="flex gap-2">
+                <button id="biz-details-write-review" class="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 text-sm">✍️ Write a Review</button>
+                <button onclick="closeBizDetailsModal()" class="flex-1 bg-brand-green text-white py-2 rounded-lg hover:bg-green-700 text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="review-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Write a Review</h3>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Reviewing: <span id="review-biz-name" class="font-semibold text-brand-green"></span></p>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating *</label>
+                <div class="flex gap-2 text-3xl cursor-pointer">
+                    <span id="r1" onclick="setReviewStars(1)" class="text-gray-300 hover:text-yellow-400 transition-colors">☆</span>
+                    <span id="r2" onclick="setReviewStars(2)" class="text-gray-300 hover:text-yellow-400 transition-colors">☆</span>
+                    <span id="r3" onclick="setReviewStars(3)" class="text-gray-300 hover:text-yellow-400 transition-colors">☆</span>
+                    <span id="r4" onclick="setReviewStars(4)" class="text-gray-300 hover:text-yellow-400 transition-colors">☆</span>
+                    <span id="r5" onclick="setReviewStars(5)" class="text-gray-300 hover:text-yellow-400 transition-colors">☆</span>
+                </div>
+                <input type="hidden" id="review-stars-input" value="">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Your Review *</label>
+                <textarea id="review-text-input" rows="4" placeholder="Share your experience with this business..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm"></textarea>
+            </div>
+            <div id="review-msg" class="text-sm mb-3"></div>
+            <div class="flex gap-2">
+                <button onclick="closeReviewModal()" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Cancel</button>
+                <button onclick="submitReview()" class="flex-1 bg-brand-green text-white py-2 rounded-lg hover:bg-green-700 text-sm font-medium">Submit Review</button>
+            </div>
         </div>
     </div>
 
