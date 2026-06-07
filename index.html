@@ -2037,6 +2037,11 @@
         let currentPage = 'home';
         let userCourses = []; // Track enrolled courses for current user
         let pendingBusinesses = []; // Businesses submitted via signup, pending admin review
+
+        // ---- SUBMIT ENDPOINT ----
+        // To switch to Google Apps Script (free), replace the URL below
+        // with your deployed Apps Script Web App URL:
+        const SUBMIT_URL = '/api/submit';
         
         // Navigation system
         function showPage(pageId) {
@@ -2076,7 +2081,24 @@
         // Initialize page on load
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, initializing...');
-            showPage('home');
+            // Restore session from localStorage if available
+            const saved = localStorage.getItem('gw100_user');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    updateAuthUI();
+                    // Restore them to their dashboard
+                    const dashMap = { admin: 'admin-dashboard', association: 'association-dashboard', business: 'business-dashboard', individual: 'member-dashboard' };
+                    const dest = dashMap[currentUser.type] || 'home';
+                    showPage(dest);
+                    if (currentUser.type === 'individual') initializeSampleEnrolledCourses();
+                } catch(e) {
+                    localStorage.removeItem('gw100_user');
+                    showPage('home');
+                }
+            } else {
+                showPage('home');
+            }
         });
 
         // Mobile menu toggle
@@ -2101,21 +2123,25 @@
                 // Determine user type based on email
                 if (email === 'admin@test.com' && password === 'admin123') {
                     currentUser = { type: 'admin', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('admin-dashboard');
                     showToast('Welcome, Admin!', '#2d6a2d');
                 } else if (email === 'association@test.com' && password === 'password123') {
                     currentUser = { type: 'association', email: email, name: 'Association Leader' };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('association-dashboard');
                     showToast('Welcome, Association Leader!', '#2d6a2d');
                 } else if (email === 'business@test.com' && password === 'password123') {
                     currentUser = { type: 'business', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('business-dashboard');
                     showToast('Welcome, Business Owner!', '#2d6a2d');
                 } else if (email === 'individual@test.com' && password === 'password123') {
                     currentUser = { type: 'individual', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('member-dashboard');
                     initializeSampleEnrolledCourses();
@@ -2266,21 +2292,25 @@
                 
                 if (email === 'admin@test.com' && password === 'admin123') {
                     currentUser = { type: 'admin', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('admin-dashboard');
                     showToast('Welcome, Admin!', '#2d6a2d');
                 } else if (email === 'association@test.com' && password === 'password123') {
                     currentUser = { type: 'association', email: email, name: 'Association Leader' };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('association-dashboard');
                     showToast('Welcome, Association Leader!', '#2d6a2d');
                 } else if (email === 'business@test.com' && password === 'password123') {
                     currentUser = { type: 'business', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('business-dashboard');
                     showToast('Welcome, Business Owner!', '#2d6a2d');
                 } else if (email === 'individual@test.com' && password === 'password123') {
                     currentUser = { type: 'individual', email: email };
+                    localStorage.setItem('gw100_user', JSON.stringify(currentUser));
                     updateAuthUI();
                     showPage('member-dashboard');
                     initializeSampleEnrolledCourses();
@@ -2316,6 +2346,7 @@
         function logout() {
             currentUser = null;
             userCourses = [];
+            localStorage.removeItem('gw100_user');
             
             // Reset auth UI
             const authSection = document.getElementById('auth-section');
@@ -2334,9 +2365,8 @@
                 mobileMenu.classList.add('hidden');
             }
             
-            // Return to home page
             showPage('home');
-            alert('You have been logged out successfully.');
+            showToast('You have been logged out.', '#2d6a2d');
         }
 
         // Account type selection
@@ -2411,7 +2441,7 @@
                     investorWanted: formData.get('investorWanted') || 'No',
                     verified: formData.get('verified') === 'on',
                 };
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
@@ -3151,7 +3181,7 @@
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3208,7 +3238,7 @@
             msgEl.textContent = '';
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3399,7 +3429,7 @@
             if (msgEl) msgEl.textContent = '';
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3437,7 +3467,7 @@
             if (msgEl) msgEl.textContent = '';
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3522,7 +3552,7 @@
             if (msgEl) msgEl.textContent = '';
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3559,7 +3589,7 @@
             if (msgEl) msgEl.textContent = '';
 
             try {
-                const res = await fetch('/api/submit', {
+                const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
