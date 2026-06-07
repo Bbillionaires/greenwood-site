@@ -23,6 +23,8 @@ const TAB_MAP = {
   'investor-interest':  'Investor Interest',
   'investor-register':  'Investor Register',
   'land-trust':         'Land Trust',
+  'message':            'Messages',
+  'task':               'Tasks',
 };
 
 const HEADERS = {
@@ -32,6 +34,8 @@ const HEADERS = {
   'investor-interest':  ['Timestamp','Row ID','Name','Email','Investment Range','Message','Business Interest','Status'],
   'investor-register':  ['Timestamp','Row ID','Name','Email','Investment Range','Areas of Interest','Status'],
   'land-trust':         ['Timestamp','Row ID','Name','Email','Phone','Interest Type','Message','Status'],
+  'message':            ['Timestamp','Message ID','Thread ID','From','To','To Name','Subject','Message','Read','Flagged','Deleted'],
+  'task':               ['Timestamp','Task ID','Title','Description','Due Date','Assigned To','Assigned By','Status','Notes','Last Updated'],
 };
 
 // ---- READ (admin dashboard fetches live data) ----
@@ -39,7 +43,35 @@ function doGet(e) {
   const action = (e.parameter && e.parameter.action) || 'ping';
   let result;
 
-  if (action === 'list') {
+  if (action === 'messages') {
+    const userFilter = e.parameter.user || '';
+    const threadFilter = e.parameter.thread || '';
+    const showDeleted = e.parameter.showDeleted === 'true';
+    try {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('Messages');
+      if (!sheet || sheet.getLastRow() < 2) {
+        result = { ok: true, rows: [] };
+      } else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        let rows = data.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i]; });
+          return obj;
+        });
+        if (!showDeleted) rows = rows.filter(r => r['Deleted'] !== 'Yes');
+        if (threadFilter) {
+          rows = rows.filter(r => r['Thread ID'] === threadFilter);
+        } else if (userFilter) {
+          rows = rows.filter(r => r['From'] === userFilter || r['To'] === userFilter);
+        }
+        result = { ok: true, rows };
+      }
+    } catch (err) {
+      result = { ok: false, error: err.toString() };
+    }
+  } else if (action === 'list') {
     const sheetName = e.parameter.sheet || 'Signups';
     const filterStatus = e.parameter.status || ''; // e.g. 'Pending' or ''
     try {
@@ -64,6 +96,30 @@ function doGet(e) {
     } catch (err) {
       result = { ok: false, error: err.toString() };
     }
+  } else if (action === 'tasks') {
+    const assignee = e.parameter.assignee || '';
+    const all = e.parameter.all === 'true';
+    try {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('Tasks');
+      if (!sheet || sheet.getLastRow() < 2) {
+        result = { ok: true, rows: [] };
+      } else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        let rows = data.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i]; });
+          return obj;
+        });
+        if (!all && assignee) {
+          rows = rows.filter(r => r['Assigned To'] === assignee);
+        }
+        result = { ok: true, rows };
+      }
+    } catch(err) {
+      result = { ok: false, error: err.toString() };
+    }
   } else {
     result = { ok: true, message: 'Greenwood 100 API is running' };
   }
@@ -83,6 +139,40 @@ function doPost(e) {
     // Admin status update (approve / reject)
     if (formType === 'update-status') {
       result = updateRowStatus(body.sheetName, body.rowId, body.status);
+
+    } else if (formType === 'flag-message') {
+      result = updateMessageField('Messages', body.rowId, 'Flagged', 'Yes');
+
+    } else if (formType === 'delete-message') {
+      result = updateMessageField('Messages', body.rowId, 'Deleted', 'Yes');
+
+    } else if (formType === 'mark-read') {
+      result = updateMessageField('Messages', body.rowId, 'Read', 'Yes');
+
+    } else if (formType === 'create-task') {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      let sheet = ss.getSheetByName('Tasks');
+      if (!sheet) {
+        sheet = ss.insertSheet('Tasks');
+        const hr = sheet.getRange(1,1,1,HEADERS['task'].length);
+        hr.setValues([HEADERS['task']]);
+        hr.setFontWeight('bold').setBackground('#2d6a2d').setFontColor('#ffffff');
+      }
+      const ts = new Date().toISOString();
+      const taskId = Date.now().toString();
+      sheet.appendRow([ts, taskId, body.title||'', body.description||'', body.dueDate||'', body.assignedTo||'', body.assignedBy||'', 'Pending', '', ts]);
+      result = { ok: true, taskId };
+
+    } else if (formType === 'update-task-status') {
+      // volunteer accepts or denies
+      result = updateTaskField(body.taskId, 'Status', body.status);
+
+    } else if (formType === 'update-task-notes') {
+      // association adds follow-up notes
+      result = updateTaskField(body.taskId, 'Notes', body.notes);
+
+    } else if (formType === 'complete-task') {
+      result = updateTaskField(body.taskId, 'Status', 'Completed');
 
     } else {
       // Form submission
@@ -128,6 +218,16 @@ function doPost(e) {
           case 'land-trust':
             row = [ts, rowId, body.name||'', body.email||'', body.phone||'', body.interest||'', body.message||'', 'New'];
             break;
+          case 'message':
+            row = [ts, rowId,
+              body.threadId || '',
+              body.from || '',
+              body.to || '',
+              body.toName || '',
+              body.subject || '',
+              body.message || '',
+              'No', 'No', 'No'];
+            break;
           default:
             row = [ts, rowId, JSON.stringify(body), '', '', '', '', 'New'];
         }
@@ -143,6 +243,44 @@ function doPost(e) {
   return ContentService
     .createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateTaskField(taskId, fieldName, value) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName('Tasks');
+  if (!sheet) return { ok: false, error: 'Tasks sheet not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idCol = headers.indexOf('Task ID');
+  const fieldCol = headers.indexOf(fieldName);
+  const updatedCol = headers.indexOf('Last Updated');
+  if (idCol < 0 || fieldCol < 0) return { ok: false, error: 'Column not found' };
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idCol]) === String(taskId)) {
+      sheet.getRange(i+1, fieldCol+1).setValue(value);
+      if (updatedCol >= 0) sheet.getRange(i+1, updatedCol+1).setValue(new Date().toISOString());
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Task not found: ' + taskId };
+}
+
+function updateMessageField(sheetName, rowId, fieldName, value) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, error: 'Sheet not found: ' + sheetName };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idCol = headers.indexOf('Message ID');
+  const fieldCol = headers.indexOf(fieldName);
+  if (idCol < 0 || fieldCol < 0) return { ok: false, error: 'Column not found' };
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idCol]) === String(rowId)) {
+      sheet.getRange(i + 1, fieldCol + 1).setValue(value);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Row not found: ' + rowId };
 }
 
 function updateRowStatus(sheetName, rowId, newStatus) {
