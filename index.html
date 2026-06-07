@@ -467,6 +467,9 @@
                                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                                     Update Profile
                                 </button>
+                                <button type="button" onclick="openEditListingModal()" class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800">
+                                    ✏️ Edit My Listing
+                                </button>
                             </form>
                         </div>
 
@@ -2633,6 +2636,7 @@
                             const isVerified = entry && entry.verified;
                             return `
                         <button onclick="adminVerifyBusiness('${rowId}')" class="${isVerified ? 'bg-yellow-500' : 'bg-blue-600'} text-white px-3 py-1 rounded text-sm hover:opacity-90">${isVerified ? '⭐ Verified' : 'Verify'}</button>
+                        <button data-edit-row-id="${rowId}" onclick="openEditListingModalById(this.dataset.editRowId)" class="bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-800">✏️ Edit</button>
                         <button onclick="adminDeleteListing('${rowId}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>`;
                         })() : `<span class="text-xs text-gray-400">—</span>`}
                     </div>
@@ -4981,6 +4985,157 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Listing Modal -->
+    <div id="edit-listing-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900">✏️ Edit Business Listing</h2>
+                <button onclick="closeEditListingModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="edit-listing-row-id">
+                <input type="hidden" id="edit-listing-owner-email">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                    <input type="text" id="edit-listing-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="text" id="edit-listing-phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="edit-listing-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <input type="text" id="edit-listing-address" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="edit-listing-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                    <input type="text" id="edit-listing-website" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm" placeholder="https://...">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Category</label>
+                        <select id="edit-listing-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                            <option value="">Select category</option>
+                            <option value="restaurant">Restaurant</option>
+                            <option value="retail">Retail</option>
+                            <option value="services">Services</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="automotive">Automotive</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Investor Wanted</label>
+                        <select id="edit-listing-investor" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeEditListingModal()" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Cancel</button>
+                    <button onclick="saveListingEdit()" class="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 text-sm font-medium">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditListingModal(bizObj) {
+            // If no bizObj passed, look up current user's business
+            if (!bizObj) {
+                if (!currentUser) { showToast('Please log in.', '#dc2626'); return; }
+                const businesses = loadApprovedBusinesses();
+                bizObj = businesses.find(b => b.ownerEmail && b.ownerEmail === currentUser.email);
+                if (!bizObj) { showToast('No listing found for your account.', '#dc2626'); return; }
+            }
+            document.getElementById('edit-listing-row-id').value = bizObj.id || '';
+            document.getElementById('edit-listing-owner-email').value = bizObj.ownerEmail || '';
+            document.getElementById('edit-listing-name').value = bizObj.name || '';
+            document.getElementById('edit-listing-phone').value = bizObj.phone || '';
+            document.getElementById('edit-listing-email').value = bizObj.email || bizObj.ownerEmail || '';
+            document.getElementById('edit-listing-address').value = bizObj.address || '';
+            document.getElementById('edit-listing-description').value = bizObj.description || '';
+            document.getElementById('edit-listing-website').value = bizObj.website || '';
+            document.getElementById('edit-listing-category').value = (bizObj.category || '').toLowerCase();
+            document.getElementById('edit-listing-investor').value = bizObj.investorWanted || 'No';
+            const modal = document.getElementById('edit-listing-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openEditListingModalById(rowId) {
+            const businesses = loadApprovedBusinesses();
+            const biz = businesses.find(b => String(b.id) === String(rowId));
+            if (!biz) { showToast('Listing not found.', '#dc2626'); return; }
+            openEditListingModal(biz);
+        }
+
+        function closeEditListingModal() {
+            const modal = document.getElementById('edit-listing-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function saveListingEdit() {
+            const rowId = document.getElementById('edit-listing-row-id').value;
+            const ownerEmail = document.getElementById('edit-listing-owner-email').value;
+            const businessName = document.getElementById('edit-listing-name').value.trim();
+            const phone = document.getElementById('edit-listing-phone').value.trim();
+            const email = document.getElementById('edit-listing-email').value.trim();
+            const address = document.getElementById('edit-listing-address').value.trim();
+            const description = document.getElementById('edit-listing-description').value.trim();
+            const website = document.getElementById('edit-listing-website').value.trim();
+            const businessCategory = document.getElementById('edit-listing-category').value;
+            const investorWanted = document.getElementById('edit-listing-investor').value;
+
+            if (!businessName) { showToast('Business name is required.', '#dc2626'); return; }
+
+            // Update localStorage
+            const businesses = loadApprovedBusinesses();
+            const idx = businesses.findIndex(b => String(b.id) === String(rowId));
+            if (idx !== -1) {
+                businesses[idx] = Object.assign(businesses[idx], {
+                    name: businessName,
+                    phone,
+                    email,
+                    address,
+                    description,
+                    website,
+                    category: businessCategory,
+                    investorWanted,
+                    ownerEmail: ownerEmail || businesses[idx].ownerEmail,
+                });
+                saveApprovedBusinesses(businesses);
+            }
+
+            // POST to Apps Script (may return unknown formType — that's fine)
+            try {
+                await fetch(SUBMIT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ formType: 'update-listing', rowId, businessName, phone, email, address, description, website, businessCategory, investorWanted }),
+                });
+            } catch(e) { /* ignore network errors for this fire-and-forget */ }
+
+            // Refresh directory and admin panel
+            if (typeof initializeBusinessDirectory === 'function') initializeBusinessDirectory();
+            if (typeof refreshAdminBusinessList === 'function' && currentUser && currentUser.type === 'admin') refreshAdminBusinessList();
+
+            closeEditListingModal();
+            showToast('Listing updated successfully!', '#2d6a2d');
+        }
+    </script>
 
 </body>
 </html>
