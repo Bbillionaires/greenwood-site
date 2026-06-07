@@ -2452,7 +2452,7 @@
                 };
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify(payload),
                 });
                 const data = await res.json();
@@ -2486,17 +2486,47 @@
             }
         }
 
-        function refreshAdminBusinessList() {
-            // Always read fresh from localStorage
-            pendingBusinesses = loadPendingBusinesses();
-
+        async function refreshAdminBusinessList() {
             const container = document.getElementById('admin-businesses-content');
             if (!container) return;
             const listDiv = container.querySelector('.space-y-4');
             if (!listDiv) return;
 
-            // Update the tab badge with pending count
-            const pendingCount = pendingBusinesses.filter(b => b.status === 'Pending').length;
+            // Try to fetch live from Google Sheets via Apps Script
+            const usingAppsScript = SUBMIT_URL !== '/api/submit';
+            let rows = [];
+
+            if (usingAppsScript) {
+                listDiv.innerHTML = '<div class="text-gray-500 text-sm p-4">Loading submissions from Google Sheets…</div>';
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=list&sheet=Signups`);
+                    const data = await res.json();
+                    if (data.ok) {
+                        // Filter for business accounts only
+                        rows = (data.rows || []).filter(r => (r['Account Type'] || '').toLowerCase() === 'business');
+                    }
+                } catch(err) {
+                    listDiv.innerHTML = '<div class="text-red-500 text-sm p-4">Could not load from Google Sheets. Check your SUBMIT_URL.</div>';
+                    return;
+                }
+            } else {
+                // Fallback: localStorage while Apps Script not yet configured
+                rows = loadPendingBusinesses().map(b => ({
+                    'Row ID': b.id,
+                    'Business Name': b.businessName,
+                    'Category': b.category,
+                    'First Name': b.ownerName ? b.ownerName.split(' ')[0] : '',
+                    'Last Name': b.ownerName ? b.ownerName.split(' ').slice(1).join(' ') : '',
+                    'Email': b.ownerEmail,
+                    'Phone': b.phone,
+                    'Investor Wanted': b.investorWanted,
+                    'Timestamp': b.submittedAt,
+                    'Status': b.status || 'Pending',
+                }));
+            }
+
+            // Update tab badge
+            const pendingCount = rows.filter(r => !r['Status'] || r['Status'] === 'Pending').length;
             const bizTab = document.getElementById('admin-businesses-tab');
             if (bizTab) {
                 bizTab.innerHTML = pendingCount > 0
@@ -2504,55 +2534,71 @@
                     : 'Businesses';
             }
 
-            // Render pending businesses at top, then existing hardcoded ones
-            const pendingHTML = pendingBusinesses.map(b => `
-                <div class="flex items-center justify-between p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
-                    <div>
-                        <div class="font-medium">${b.businessName} <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">NEW</span></div>
-                        <div class="text-sm text-gray-600">${b.category} • ${b.ownerName} • ${b.ownerEmail}</div>
-                        <div class="text-xs text-gray-400">Submitted: ${b.submittedAt}</div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="adminApproveBusiness(${b.id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button>
-                        <button onclick="adminRejectBusiness(${b.id})" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reject</button>
-                    </div>
-                </div>
-            `).join('');
-
-            const existingHTML = `
-                <div class="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                        <div class="font-medium">Joe's Coffee Shop</div>
-                        <div class="text-sm text-gray-600">Restaurant • Verified</div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button>
-                        <button class="bg-yellow-600 text-white px-3 py-1 rounded text-sm">Review</button>
-                        <button class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reject</button>
-                    </div>
-                </div>
-            `;
-
-            listDiv.innerHTML = pendingHTML + existingHTML;
-        }
-
-        function adminApproveBusiness(id) {
-            pendingBusinesses = loadPendingBusinesses();
-            const b = pendingBusinesses.find(x => x.id === id);
-            if (b) {
-                b.status = 'Approved';
-                savePendingBusinesses(pendingBusinesses);
-                showToast(`${b.businessName} approved!`, '#2d6a2d');
-                refreshAdminBusinessList();
+            if (rows.length === 0) {
+                listDiv.innerHTML = '<div class="text-gray-500 text-sm p-4 text-center">No business submissions yet.</div>';
+                return;
             }
+
+            const statusColor = { Pending: 'border-yellow-400 bg-yellow-50', Approved: 'border-green-400 bg-green-50', Rejected: 'border-red-300 bg-red-50' };
+            const rowsHTML = rows.map(r => {
+                const status = r['Status'] || 'Pending';
+                const colors = statusColor[status] || 'border-gray-200 bg-white';
+                const name = `${r['First Name']||''} ${r['Last Name']||''}`.trim();
+                const rowId = r['Row ID'] || '';
+                const bizName = (r['Business Name'] || 'Unnamed Business').replace(/</g, '&lt;');
+                const cat = (r['Category'] || 'General').replace(/</g, '&lt;');
+                const email = (r['Email'] || '').replace(/</g, '&lt;');
+                const ts = r['Timestamp'] ? new Date(r['Timestamp']).toLocaleString() : '';
+                return `
+                <div class="flex items-start justify-between p-4 border-2 ${colors} rounded-lg gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium flex items-center gap-2 flex-wrap">
+                            ${bizName}
+                            <span class="text-xs px-2 py-0.5 rounded ${status==='Pending'?'bg-yellow-500 text-white':status==='Approved'?'bg-green-600 text-white':'bg-red-500 text-white'}">${status}</span>
+                            ${r['Investor Wanted']==='Yes'?'<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Investor Wanted</span>':''}
+                        </div>
+                        <div class="text-sm text-gray-600 mt-1">${cat} • ${name} • ${email}</div>
+                        ${ts ? `<div class="text-xs text-gray-400 mt-0.5">Submitted: ${ts}</div>` : ''}
+                    </div>
+                    <div class="flex flex-col gap-1 shrink-0">
+                        ${status === 'Pending' ? `
+                        <button onclick="adminUpdateStatus('${rowId}','Approved')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Approve</button>
+                        <button onclick="adminUpdateStatus('${rowId}','Rejected')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Reject</button>
+                        ` : `<span class="text-xs text-gray-400">No actions</span>`}
+                    </div>
+                </div>`;
+            }).join('');
+
+            listDiv.innerHTML = rowsHTML;
         }
 
-        function adminRejectBusiness(id) {
-            pendingBusinesses = loadPendingBusinesses().filter(x => x.id !== id);
-            savePendingBusinesses(pendingBusinesses);
-            showToast('Business rejected and removed.', '#dc2626');
+        async function adminUpdateStatus(rowId, newStatus) {
+            const usingAppsScript = SUBMIT_URL !== '/api/submit';
+
+            if (usingAppsScript) {
+                try {
+                    await fetch(SUBMIT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ formType: 'update-status', sheetName: 'Signups', rowId, status: newStatus }),
+                    });
+                } catch(e) {
+                    showToast('Error updating status. Check connection.', '#dc2626');
+                    return;
+                }
+            } else {
+                // Fallback: update localStorage
+                const list = loadPendingBusinesses();
+                const b = list.find(x => String(x.id) === String(rowId));
+                if (b) { b.status = newStatus; savePendingBusinesses(list); }
+            }
+
+            showToast(newStatus === 'Approved' ? 'Business approved!' : 'Business rejected.', newStatus === 'Approved' ? '#2d6a2d' : '#dc2626');
             refreshAdminBusinessList();
         }
+
+        // Legacy aliases kept so old references don't break
+        function adminApproveBusiness(id) { adminUpdateStatus(id, 'Approved'); }
+        function adminRejectBusiness(id) { adminUpdateStatus(id, 'Rejected'); }
 
         // Initialize business directory
         function initializeBusinessDirectory() {
@@ -3212,7 +3258,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'contact',
                         name: name,
@@ -3269,7 +3315,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'volunteer',
                         name: formData.get('volunteerName') || '',
@@ -3460,7 +3506,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'investor-interest',
                         name: formData.get('interestName') || '',
@@ -3498,7 +3544,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'investor-register',
                         name: name,
@@ -3583,7 +3629,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'land-trust',
                         name: formData.get('ltModalName') || '',
@@ -3620,7 +3666,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    
                     body: JSON.stringify({
                         formType: 'land-trust',
                         name: formData.get('ltName') || '',
