@@ -578,6 +578,9 @@
                             <button onclick="showAssociationTab('finances')" id="association-finances-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💰 Finances
                             </button>
+                            <button onclick="showAssociationTab('tasks')" id="association-tasks-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                                📋 Tasks
+                            </button>
                         </nav>
                     </div>
 
@@ -653,6 +656,19 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Tasks Tab -->
+                        <div id="association-tasks-content" class="association-tab-content hidden">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold">Volunteer Task Board</h3>
+                                    <button onclick="openCreateTaskModal()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800">+ Assign Task</button>
+                                </div>
+                                <div id="association-task-list" class="space-y-3">
+                                    <div class="text-gray-400 text-sm text-center py-8">Loading tasks…</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -704,6 +720,9 @@
                             </button>
                             <button onclick="showMemberTab('inbox')" id="member-inbox-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💬 Inbox <span id="member-inbox-badge" class="hidden ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full"></span>
+                            </button>
+                            <button onclick="showMemberTab('tasks')" id="member-tasks-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                                📋 My Tasks
                             </button>
                         </nav>
                     </div>
@@ -843,6 +862,16 @@
                             <h3 class="text-lg font-semibold mb-4">My Inbox</h3>
                             <div id="member-inbox-list" class="space-y-3">
                                 <div class="text-gray-400 text-sm text-center py-8">Loading messages…</div>
+                            </div>
+                        </div>
+
+                        <!-- My Tasks Tab -->
+                        <div id="member-tasks-content" class="member-tab-content hidden">
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-4">My Assigned Tasks</h3>
+                                <div id="member-task-list" class="space-y-3">
+                                    <div class="text-gray-400 text-sm text-center py-8">Loading tasks…</div>
+                                </div>
                             </div>
                         </div>
 
@@ -2287,6 +2316,10 @@
                 selectedTab.classList.remove('border-transparent', 'text-gray-500');
                 selectedTab.classList.add('border-green-500', 'text-green-600');
             }
+
+            if (tabName === 'tasks') {
+                loadAssociationTasks();
+            }
         }
 
         function showMemberTab(tabName) {
@@ -2321,6 +2354,9 @@
             // Load inbox
             if (tabName === 'inbox') {
                 loadInbox(document.getElementById('member-inbox-list'));
+            }
+            if (tabName === 'tasks') {
+                loadVolunteerTasks(document.getElementById('member-task-list'));
             }
         }
 
@@ -5137,6 +5173,314 @@
 
             closeEditListingModal();
             showToast('Listing updated successfully!', '#2d6a2d');
+        }
+    </script>
+
+    <!-- Create Task Modal -->
+    <div id="create-task-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Assign New Task</h2>
+                    <button onclick="closeCreateTaskModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+                        <input type="text" id="task-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="e.g. Set up chairs for community event">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="task-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="Task details and instructions…"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Assign To (volunteer email) *</label>
+                        <input type="email" id="task-assignee" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="volunteer@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+                        <input type="date" id="task-due-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm">
+                    </div>
+                    <div id="task-create-error" class="text-sm text-red-600 hidden"></div>
+                    <div class="flex gap-3">
+                        <button onclick="closeCreateTaskModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                        <button id="task-create-btn" onclick="createTask()" class="flex-1 bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800">Assign Task</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Notes/Follow-up Modal -->
+    <div id="task-notes-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Follow Up / Update Notes</h2>
+                    <button onclick="closeTaskNotesModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <input type="hidden" id="task-notes-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes / Follow-up</label>
+                    <textarea id="task-notes-text" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="Add notes, updates, or follow-up details…"></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeTaskNotesModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                    <button onclick="saveTaskNotes()" class="flex-1 bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800">Save Notes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== TASK SYSTEM =====================
+
+        function loadTasks() { try { return JSON.parse(localStorage.getItem('gw100_tasks') || '[]'); } catch(e) { return []; } }
+        function saveTasks(arr) { localStorage.setItem('gw100_tasks', JSON.stringify(arr)); }
+
+        function openCreateTaskModal() {
+            if (!currentUser) { showToast('Please log in.', '#dc2626'); return; }
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-description').value = '';
+            document.getElementById('task-assignee').value = '';
+            document.getElementById('task-due-date').value = '';
+            document.getElementById('task-create-error').classList.add('hidden');
+            const m = document.getElementById('create-task-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeCreateTaskModal() {
+            const m = document.getElementById('create-task-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function createTask() {
+            const title = document.getElementById('task-title').value.trim();
+            const description = document.getElementById('task-description').value.trim();
+            const assignedTo = document.getElementById('task-assignee').value.trim();
+            const dueDate = document.getElementById('task-due-date').value;
+            const errEl = document.getElementById('task-create-error');
+
+            if (!title || !assignedTo || !dueDate) {
+                errEl.textContent = 'Title, assignee email, and due date are required.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            const btn = document.getElementById('task-create-btn');
+            btn.disabled = true; btn.textContent = 'Assigning…';
+
+            const taskId = Date.now().toString();
+            const taskObj = {
+                taskId, title, description, dueDate,
+                assignedTo, assignedBy: currentUser.email,
+                status: 'Pending',
+                notes: '',
+                timestamp: new Date().toISOString(),
+                lastUpdated: new Date().toISOString(),
+            };
+
+            // Save to localStorage
+            const tasks = loadTasks();
+            tasks.push(taskObj);
+            saveTasks(tasks);
+
+            // Post to Apps Script
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'create-task', ...taskObj }) });
+                } catch(e) {}
+            }
+
+            btn.disabled = false; btn.textContent = 'Assign Task';
+            closeCreateTaskModal();
+            showToast('Task assigned!', '#2d6a2d');
+            loadAssociationTasks();
+        }
+
+        async function loadAssociationTasks() {
+            const container = document.getElementById('association-task-list');
+            if (!container) return;
+            container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading…</div>';
+
+            let tasks = [];
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=tasks&all=true`);
+                    const data = await res.json();
+                    if (data.ok) tasks = data.rows || [];
+                    else tasks = loadTasks();
+                } catch(e) { tasks = loadTasks(); }
+            } else {
+                tasks = loadTasks();
+            }
+
+            renderAssociationTasks(tasks);
+        }
+
+        function renderAssociationTasks(tasks) {
+            const container = document.getElementById('association-task-list');
+            if (!container) return;
+            if (!tasks.length) {
+                container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No tasks yet. Click "+ Assign Task" to get started.</div>';
+                return;
+            }
+
+            const sorted = [...tasks].sort((a,b) => new Date(b.Timestamp||b.timestamp) - new Date(a.Timestamp||a.timestamp));
+
+            const statusColors = {
+                'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                'Accepted': 'bg-blue-100 text-blue-800 border-blue-300',
+                'Denied': 'bg-red-100 text-red-800 border-red-300',
+                'Completed': 'bg-green-100 text-green-800 border-green-300',
+            };
+
+            container.innerHTML = sorted.map(t => {
+                const taskId = t['Task ID'] || t.taskId || '';
+                const title = t['Title'] || t.title || '';
+                const desc = t['Description'] || t.description || '';
+                const dueDate = t['Due Date'] || t.dueDate || '';
+                const assignedTo = t['Assigned To'] || t.assignedTo || '';
+                const status = t['Status'] || t.status || 'Pending';
+                const notes = t['Notes'] || t.notes || '';
+                const lastUpdated = t['Last Updated'] || t.lastUpdated || '';
+                const colorClass = statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+                const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString() : '';
+                const updatedStr = lastUpdated ? new Date(lastUpdated).toLocaleString() : '';
+
+                return `<div class="p-4 border rounded-lg ${colorClass}">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <div class="font-semibold text-gray-900">${title}</div>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium border ${colorClass}">${status}</span>
+                    </div>
+                    ${desc ? `<div class="text-sm text-gray-600 mb-2">${desc}</div>` : ''}
+                    <div class="text-xs text-gray-500 mb-2">
+                        Assigned to: <span class="font-medium">${assignedTo}</span>
+                        ${dueDateStr ? ` · Due: <span class="font-medium">${dueDateStr}</span>` : ''}
+                    </div>
+                    ${notes ? `<div class="text-xs bg-white bg-opacity-60 rounded p-2 mb-2 text-gray-700"><strong>Notes:</strong> ${notes}</div>` : ''}
+                    ${updatedStr ? `<div class="text-xs text-gray-400">Last updated: ${updatedStr}</div>` : ''}
+                    <div class="flex gap-2 mt-3 flex-wrap">
+                        <button data-task-id="${taskId}" data-task-notes="${notes.replace(/"/g,'&quot;')}" onclick="openTaskNotesModal(this.dataset.taskId, this.dataset.taskNotes)" class="text-xs px-3 py-1 rounded bg-white border border-gray-300 hover:bg-gray-50 text-gray-700">📝 Follow Up</button>
+                        ${status === 'Accepted' ? `<button data-task-id="${taskId}" onclick="associationCompleteTask(this.dataset.taskId)" class="text-xs px-3 py-1 rounded bg-green-700 text-white hover:bg-green-800">✅ Mark Complete</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function loadVolunteerTasks(container) {
+            if (!container || !currentUser) return;
+            container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading tasks…</div>';
+
+            let tasks = [];
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=tasks&assignee=${encodeURIComponent(currentUser.email)}`);
+                    const data = await res.json();
+                    if (data.ok) tasks = data.rows || [];
+                    else tasks = loadTasks().filter(t => t.assignedTo === currentUser.email);
+                } catch(e) { tasks = loadTasks().filter(t => t.assignedTo === currentUser.email); }
+            } else {
+                tasks = loadTasks().filter(t => t.assignedTo === currentUser.email);
+            }
+
+            if (!tasks.length) {
+                container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No tasks assigned to you yet.</div>';
+                return;
+            }
+
+            const sorted = [...tasks].sort((a,b) => new Date(b.Timestamp||b.timestamp) - new Date(a.Timestamp||a.timestamp));
+
+            container.innerHTML = sorted.map(t => {
+                const taskId = t['Task ID'] || t.taskId || '';
+                const title = t['Title'] || t.title || '';
+                const desc = t['Description'] || t.description || '';
+                const dueDate = t['Due Date'] || t.dueDate || '';
+                const assignedBy = t['Assigned By'] || t.assignedBy || '';
+                const status = t['Status'] || t.status || 'Pending';
+                const notes = t['Notes'] || t.notes || '';
+                const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString() : '';
+                const isPending = status === 'Pending';
+
+                const borderColor = status === 'Accepted' ? 'border-blue-300 bg-blue-50' : status === 'Denied' ? 'border-red-200 bg-red-50' : status === 'Completed' ? 'border-green-300 bg-green-50' : 'border-yellow-300 bg-yellow-50';
+
+                return `<div class="p-4 border rounded-lg ${borderColor}">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <div class="font-semibold text-gray-900">${title}</div>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium ${status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : status === 'Accepted' ? 'bg-blue-200 text-blue-800' : status === 'Denied' ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}">${status}</span>
+                    </div>
+                    ${desc ? `<div class="text-sm text-gray-600 mb-2">${desc}</div>` : ''}
+                    <div class="text-xs text-gray-500 mb-2">
+                        From: <span class="font-medium">${assignedBy}</span>
+                        ${dueDateStr ? ` · Due: <span class="font-medium text-red-600">${dueDateStr}</span>` : ''}
+                    </div>
+                    ${notes ? `<div class="text-xs bg-white bg-opacity-70 rounded p-2 mb-2 text-gray-700"><strong>Association notes:</strong> ${notes}</div>` : ''}
+                    ${isPending ? `<div class="flex gap-2 mt-3">
+                        <button data-task-id="${taskId}" onclick="volunteerRespondTask(this.dataset.taskId,'Accepted',this)" class="flex-1 text-sm px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium">✅ Accept</button>
+                        <button data-task-id="${taskId}" onclick="volunteerRespondTask(this.dataset.taskId,'Denied',this)" class="flex-1 text-sm px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium">❌ Deny</button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        async function volunteerRespondTask(taskId, newStatus, btn) {
+            btn.disabled = true;
+
+            // Update localStorage
+            const tasks = loadTasks();
+            const t = tasks.find(x => String(x.taskId) === String(taskId));
+            if (t) { t.status = newStatus; t.lastUpdated = new Date().toISOString(); saveTasks(tasks); }
+
+            // Post to Apps Script
+            if (SUBMIT_URL !== '/api/submit') {
+                try { await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-task-status', taskId, status: newStatus }) }); } catch(e) {}
+            }
+
+            showToast(newStatus === 'Accepted' ? 'Task accepted!' : 'Task denied.', newStatus === 'Accepted' ? '#2d6a2d' : '#dc2626');
+            loadVolunteerTasks(document.getElementById('member-task-list'));
+        }
+
+        function openTaskNotesModal(taskId, currentNotes) {
+            document.getElementById('task-notes-id').value = taskId;
+            document.getElementById('task-notes-text').value = currentNotes || '';
+            const m = document.getElementById('task-notes-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeTaskNotesModal() {
+            const m = document.getElementById('task-notes-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function saveTaskNotes() {
+            const taskId = document.getElementById('task-notes-id').value;
+            const notes = document.getElementById('task-notes-text').value.trim();
+
+            const tasks = loadTasks();
+            const t = tasks.find(x => String(x.taskId) === String(taskId));
+            if (t) { t.notes = notes; t.lastUpdated = new Date().toISOString(); saveTasks(tasks); }
+
+            if (SUBMIT_URL !== '/api/submit') {
+                try { await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-task-notes', taskId, notes }) }); } catch(e) {}
+            }
+
+            closeTaskNotesModal();
+            showToast('Notes saved!', '#2d6a2d');
+            loadAssociationTasks();
+        }
+
+        async function associationCompleteTask(taskId) {
+            const tasks = loadTasks();
+            const t = tasks.find(x => String(x.taskId) === String(taskId));
+            if (t) { t.status = 'Completed'; t.lastUpdated = new Date().toISOString(); saveTasks(tasks); }
+
+            if (SUBMIT_URL !== '/api/submit') {
+                try { await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'complete-task', taskId }) }); } catch(e) {}
+            }
+
+            showToast('Task marked complete!', '#2d6a2d');
+            loadAssociationTasks();
         }
     </script>
 
