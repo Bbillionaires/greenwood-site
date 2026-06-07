@@ -2329,21 +2329,38 @@
         }
 
         // Update authentication UI
+        function getDashboardPage(user) {
+            const map = { admin: 'admin-dashboard', association: 'association-dashboard', business: 'business-dashboard', individual: 'member-dashboard' };
+            return map[user.type] || 'home';
+        }
+
+        function getDashboardLabel(user) {
+            const map = { admin: 'Admin Panel', association: 'My Dashboard', business: 'My Dashboard', individual: 'My Dashboard' };
+            return map[user.type] || 'Dashboard';
+        }
+
         function updateAuthUI() {
             const authSection = document.getElementById('auth-section');
             const mobileAuthSection = document.getElementById('mobile-auth-section');
-            
+
             if (currentUser) {
+                const dashPage = getDashboardPage(currentUser);
+                const dashLabel = getDashboardLabel(currentUser);
+                const shortEmail = currentUser.email.length > 18 ? currentUser.email.split('@')[0] : currentUser.email;
+
                 const userButton = `
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-700">Welcome, ${currentUser.email}</span>
-                        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">Logout</button>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="showPage('${dashPage}')" class="bg-brand-green text-white px-3 py-1.5 rounded-lg hover:bg-green-700 text-sm font-medium">
+                            👤 ${dashLabel}
+                        </button>
+                        <button onclick="logout()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 text-sm">Logout</button>
                     </div>
                 `;
                 const mobileUserButton = `
-                    <div class="border-t border-gray-200 pt-2 mt-2">
-                        <div class="px-3 py-2 text-sm text-gray-700 mb-2">Welcome, ${currentUser.email}</div>
-                        <button onclick="logout()" class="mx-3 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors w-auto">Logout</button>
+                    <div class="border-t border-gray-200 pt-2 mt-2 space-y-1">
+                        <div class="px-3 py-1 text-xs text-gray-500">${shortEmail}</div>
+                        <button onclick="showPage('${dashPage}'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 bg-brand-green text-white rounded mx-3 text-sm" style="width:calc(100% - 1.5rem)">👤 ${dashLabel}</button>
+                        <button onclick="logout()" class="block w-full text-left px-3 py-2 bg-red-600 text-white rounded mx-3 text-sm" style="width:calc(100% - 1.5rem)">Logout</button>
                     </div>
                 `;
                 if (authSection) authSection.innerHTML = userButton;
