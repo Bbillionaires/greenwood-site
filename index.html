@@ -2036,7 +2036,14 @@
         let currentUser = null;
         let currentPage = 'home';
         let userCourses = []; // Track enrolled courses for current user
-        let pendingBusinesses = []; // Businesses submitted via signup, pending admin review
+        // Businesses persisted to localStorage so they survive refreshes and are visible to admin
+        function loadPendingBusinesses() {
+            try { return JSON.parse(localStorage.getItem('gw100_pending_businesses') || '[]'); } catch(e) { return []; }
+        }
+        function savePendingBusinesses(arr) {
+            localStorage.setItem('gw100_pending_businesses', JSON.stringify(arr));
+        }
+        let pendingBusinesses = loadPendingBusinesses();
 
         // ---- SUBMIT ENDPOINT ----
         // To switch to Google Apps Script (free), replace the URL below
@@ -2065,6 +2072,8 @@
                     initLeaderboard();
                 } else if (pageId === 'rewards') {
                     refreshRewardsPointsDisplay();
+                } else if (pageId === 'admin-dashboard') {
+                    refreshAdminBusinessList();
                 }
                 
                 // Close mobile menu
@@ -2461,6 +2470,7 @@
                             status: 'Pending',
                             submittedAt: new Date().toLocaleString()
                         });
+                        savePendingBusinesses(pendingBusinesses);
                         refreshAdminBusinessList();
                     }
                     showToast('Account created successfully! You can now log in.', '#2d6a2d');
@@ -2477,10 +2487,22 @@
         }
 
         function refreshAdminBusinessList() {
+            // Always read fresh from localStorage
+            pendingBusinesses = loadPendingBusinesses();
+
             const container = document.getElementById('admin-businesses-content');
             if (!container) return;
             const listDiv = container.querySelector('.space-y-4');
             if (!listDiv) return;
+
+            // Update the tab badge with pending count
+            const pendingCount = pendingBusinesses.filter(b => b.status === 'Pending').length;
+            const bizTab = document.getElementById('admin-businesses-tab');
+            if (bizTab) {
+                bizTab.innerHTML = pendingCount > 0
+                    ? `Businesses <span class="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">${pendingCount}</span>`
+                    : 'Businesses';
+            }
 
             // Render pending businesses at top, then existing hardcoded ones
             const pendingHTML = pendingBusinesses.map(b => `
@@ -2515,12 +2537,19 @@
         }
 
         function adminApproveBusiness(id) {
+            pendingBusinesses = loadPendingBusinesses();
             const b = pendingBusinesses.find(x => x.id === id);
-            if (b) { b.status = 'Approved'; showToast(`${b.businessName} approved!`, '#2d6a2d'); refreshAdminBusinessList(); }
+            if (b) {
+                b.status = 'Approved';
+                savePendingBusinesses(pendingBusinesses);
+                showToast(`${b.businessName} approved!`, '#2d6a2d');
+                refreshAdminBusinessList();
+            }
         }
 
         function adminRejectBusiness(id) {
-            pendingBusinesses = pendingBusinesses.filter(x => x.id !== id);
+            pendingBusinesses = loadPendingBusinesses().filter(x => x.id !== id);
+            savePendingBusinesses(pendingBusinesses);
             showToast('Business rejected and removed.', '#dc2626');
             refreshAdminBusinessList();
         }
