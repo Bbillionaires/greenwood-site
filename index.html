@@ -2581,10 +2581,10 @@
                         </div>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="contactBusiness('${business.name}')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1">
+                        <button onclick="contactBusiness(this)" data-bizname="${business.name}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1">
                             Contact
                         </button>
-                        <button onclick="viewBusinessDetails('${business.name}')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                        <button onclick="viewBusinessDetails(this)" data-bizname="${business.name}" data-bizdesc="${business.description}" data-bizrating="${business.rating}" data-bizreviews="${business.reviews}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
                             Details
                         </button>
                     </div>
@@ -2636,12 +2636,41 @@
             if (catFilter) catFilter.addEventListener('change', filterBusinesses);
         });
 
-        function contactBusiness(businessName) {
-            alert(`Contact information for ${businessName} would be displayed here, or a contact form would open.`);
+        function contactBusiness(btn) {
+            const name = btn.dataset.bizname;
+            const phone = btn.dataset.bizphone;
+            const address = btn.dataset.bizaddress;
+            document.getElementById('biz-contact-name').textContent = name;
+            document.getElementById('biz-contact-phone').textContent = phone;
+            document.getElementById('biz-contact-address').textContent = address;
+            document.getElementById('biz-contact-modal').classList.remove('hidden');
+            document.getElementById('biz-contact-modal').classList.add('flex');
         }
 
-        function viewBusinessDetails(businessName) {
-            alert(`Detailed information for ${businessName} would be displayed here, including photos, hours, and more reviews.`);
+        function closeBizContactModal() {
+            document.getElementById('biz-contact-modal').classList.add('hidden');
+            document.getElementById('biz-contact-modal').classList.remove('flex');
+        }
+
+        function viewBusinessDetails(btn) {
+            const name = btn.dataset.bizname;
+            const desc = btn.dataset.bizdesc;
+            const rating = btn.dataset.bizrating;
+            const reviews = btn.dataset.bizreviews;
+            const phone = btn.dataset.bizphone;
+            const address = btn.dataset.bizaddress;
+            document.getElementById('biz-details-name').textContent = name;
+            document.getElementById('biz-details-desc').textContent = desc;
+            document.getElementById('biz-details-rating').textContent = `★ ${rating} (${reviews} reviews)`;
+            document.getElementById('biz-details-phone').textContent = phone;
+            document.getElementById('biz-details-address').textContent = address;
+            document.getElementById('biz-details-modal').classList.remove('hidden');
+            document.getElementById('biz-details-modal').classList.add('flex');
+        }
+
+        function closeBizDetailsModal() {
+            document.getElementById('biz-details-modal').classList.add('hidden');
+            document.getElementById('biz-details-modal').classList.remove('flex');
         }
 
         function showAddBusiness() {
@@ -4065,5 +4094,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Business Contact Modal -->
+    <div id="biz-contact-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Contact Business</h3>
+                <button onclick="closeBizContactModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <h4 id="biz-contact-name" class="text-lg font-semibold text-brand-green mb-4"></h4>
+            <div class="space-y-3 text-gray-700">
+                <div class="flex items-center gap-2"><span>📞</span><span id="biz-contact-phone"></span></div>
+                <div class="flex items-center gap-2"><span>📍</span><span id="biz-contact-address"></span></div>
+            </div>
+            <button onclick="closeBizContactModal()" class="mt-6 w-full bg-brand-green text-white py-2 rounded-lg hover:bg-green-700">Close</button>
+        </div>
+    </div>
+
+    <!-- Business Details Modal -->
+    <div id="biz-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Business Details</h3>
+                <button onclick="closeBizDetailsModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <h4 id="biz-details-name" class="text-lg font-semibold text-brand-green mb-2"></h4>
+            <p id="biz-details-rating" class="text-yellow-500 font-medium mb-3"></p>
+            <p id="biz-details-desc" class="text-gray-600 mb-4"></p>
+            <div class="space-y-2 text-gray-700 text-sm">
+                <div class="flex items-center gap-2"><span>📞</span><span id="biz-details-phone"></span></div>
+                <div class="flex items-center gap-2"><span>📍</span><span id="biz-details-address"></span></div>
+            </div>
+            <button onclick="closeBizDetailsModal()" class="mt-6 w-full bg-brand-green text-white py-2 rounded-lg hover:bg-green-700">Close</button>
+        </div>
+    </div>
+
 </body>
 </html>
