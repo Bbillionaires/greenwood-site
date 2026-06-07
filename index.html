@@ -2847,12 +2847,48 @@
         }
 
         // Initialize business directory
-        function initializeBusinessDirectory() {
+        async function initializeBusinessDirectory() {
             const businessListings = document.getElementById('business-listings');
             if (!businessListings) return;
 
-            // Merge hardcoded samples + admin-approved submissions
-            const approvedBusinesses = loadApprovedBusinesses();
+            // Try to fetch approved businesses from Apps Script; fall back to localStorage
+            let approvedBusinesses = loadApprovedBusinesses();
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=list&sheet=Signups&status=Approved`);
+                    const data = await res.json();
+                    if (data.ok && data.rows && data.rows.length > 0) {
+                        // Merge Apps Script rows with any extra localStorage fields (imageData, videoUrl)
+                        const lsMap = {};
+                        approvedBusinesses.forEach(b => { lsMap[String(b.id)] = b; });
+                        const fetched = data.rows.map(r => {
+                            const rowId = String(r['Row ID'] || '');
+                            const ls = lsMap[rowId] || {};
+                            return {
+                                id: rowId,
+                                name: r['Business Name'] || '',
+                                category: (r['Category'] || 'general').toLowerCase(),
+                                description: r['Description'] || `${r['Business Name']} — community business member.`,
+                                baseRating: 5.0,
+                                baseReviews: 0,
+                                phone: r['Phone'] || '',
+                                address: r['Address'] || 'Jacksonville, FL',
+                                website: r['Website'] || '',
+                                verified: ls.verified || false,
+                                isUserSubmitted: true,
+                                ownerEmail: r['Email'] || '',
+                                imageData: ls.imageData || '',
+                                videoUrl: ls.videoUrl || '',
+                            };
+                        });
+                        // Save back to localStorage so offline edits persist
+                        const merged = [...fetched];
+                        fetched.forEach(b => { if (!lsMap[b.id]) {} }); // already merged above
+                        saveApprovedBusinesses(merged);
+                        approvedBusinesses = merged;
+                    }
+                } catch(e) { /* use localStorage fallback */ }
+            }
 
             const sampleBusinesses = [
                 {
