@@ -1,20 +1,20 @@
 // ============================================================
 // Greenwood 100 Inc. — Google Apps Script Backend
 // ============================================================
-// SETUP INSTRUCTIONS:
-// 1. Go to script.google.com → New Project
-// 2. Paste this entire file, replacing the default code
-// 3. Click Extensions → Apps Script → Save
-// 4. Click Deploy → New Deployment
+// SETUP (one time):
+// 1. Go to script.google.com → New Project → paste this file
+// 2. Replace SHEET_ID below with your Google Sheet ID
+//    (from URL: docs.google.com/spreadsheets/d/SHEET_ID/edit)
+// 3. Click Deploy → New Deployment
 //    - Type: Web App
 //    - Execute as: Me
 //    - Who has access: Anyone
-// 5. Click Deploy → Copy the Web App URL
-// 6. In index.html, set SUBMIT_URL at the top of the <script>
-//    to the URL you copied
+// 4. Copy the Web App URL
+// 5. In index.html find: const SUBMIT_URL = '/api/submit';
+//    Replace with:        const SUBMIT_URL = 'YOUR_WEB_APP_URL';
 // ============================================================
 
-const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE'; // Replace with your Sheet ID from the URL
+const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
 
 const TAB_MAP = {
   'signup':             'Signups',
@@ -26,78 +26,140 @@ const TAB_MAP = {
 };
 
 const HEADERS = {
-  'signup':             ['Timestamp', 'First Name', 'Last Name', 'Phone', 'Email', 'Account Type', 'Business Name', 'Category', 'Referral Program', 'Investor Wanted', 'Verified'],
-  'contact':            ['Timestamp', 'Name', 'Email', 'Subject', 'Message'],
-  'volunteer':          ['Timestamp', 'Name', 'Email', 'Phone', 'Opportunity'],
-  'investor-interest':  ['Timestamp', 'Name', 'Email', 'Investment Range', 'Message', 'Business Interest'],
-  'investor-register':  ['Timestamp', 'Name', 'Email', 'Investment Range', 'Areas of Interest'],
-  'land-trust':         ['Timestamp', 'Name', 'Email', 'Phone', 'Interest Type', 'Message'],
+  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Referral Program','Investor Wanted','Verified','Status'],
+  'contact':            ['Timestamp','Row ID','Name','Email','Subject','Message','Status'],
+  'volunteer':          ['Timestamp','Row ID','Name','Email','Phone','Opportunity','Status'],
+  'investor-interest':  ['Timestamp','Row ID','Name','Email','Investment Range','Message','Business Interest','Status'],
+  'investor-register':  ['Timestamp','Row ID','Name','Email','Investment Range','Areas of Interest','Status'],
+  'land-trust':         ['Timestamp','Row ID','Name','Email','Phone','Interest Type','Message','Status'],
 };
 
-function doPost(e) {
-  const cors = ContentService.createTextOutput();
-  cors.setMimeType(ContentService.MimeType.JSON);
+// ---- READ (admin dashboard fetches live data) ----
+function doGet(e) {
+  const action = (e.parameter && e.parameter.action) || 'ping';
+  let result;
 
+  if (action === 'list') {
+    const sheetName = e.parameter.sheet || 'Signups';
+    const filterStatus = e.parameter.status || ''; // e.g. 'Pending' or ''
+    try {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName(sheetName);
+      if (!sheet || sheet.getLastRow() < 2) {
+        result = { ok: true, rows: [] };
+      } else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const rows = data.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i]; });
+          return obj;
+        }).filter(row => {
+          if (!filterStatus) return true;
+          const s = row['Status'] || 'Pending';
+          return s === filterStatus;
+        });
+        result = { ok: true, rows };
+      }
+    } catch (err) {
+      result = { ok: false, error: err.toString() };
+    }
+  } else {
+    result = { ok: true, message: 'Greenwood 100 API is running' };
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ---- WRITE (form submissions + admin approve/reject) ----
+function doPost(e) {
+  let result;
   try {
     const body = JSON.parse(e.postData.contents);
     const formType = (body.formType || '').toLowerCase();
-    const tab = TAB_MAP[formType];
 
-    if (!tab) {
-      cors.setContent(JSON.stringify({ ok: false, error: 'Unknown formType: ' + formType }));
-      return cors;
+    // Admin status update (approve / reject)
+    if (formType === 'update-status') {
+      result = updateRowStatus(body.sheetName, body.rowId, body.status);
+
+    } else {
+      // Form submission
+      const tab = TAB_MAP[formType];
+      if (!tab) {
+        result = { ok: false, error: 'Unknown formType: ' + formType };
+      } else {
+        const ss = SpreadsheetApp.openById(SHEET_ID);
+        let sheet = ss.getSheetByName(tab);
+        if (!sheet) {
+          sheet = ss.insertSheet(tab);
+          const headerRow = sheet.getRange(1, 1, 1, HEADERS[formType].length);
+          headerRow.setValues([HEADERS[formType]]);
+          headerRow.setFontWeight('bold')
+                   .setBackground('#2d6a2d')
+                   .setFontColor('#ffffff');
+        }
+
+        const ts = new Date().toISOString();
+        const rowId = Date.now().toString();
+
+        let row;
+        switch (formType) {
+          case 'signup':
+            row = [ts, rowId, body.firstName||'', body.lastName||'', body.phone||'',
+                   body.email||'', body.accountType||'', body.businessName||'',
+                   body.businessCategory||'', body.referralProgram||'',
+                   body.investorWanted||'No', body.verified ? 'Yes' : 'No', 'Pending'];
+            break;
+          case 'contact':
+            row = [ts, rowId, body.name||'', body.email||'', body.subject||'', body.message||'', 'New'];
+            break;
+          case 'volunteer':
+            row = [ts, rowId, body.name||'', body.email||'', body.phone||'', body.opportunity||'', 'New'];
+            break;
+          case 'investor-interest':
+            row = [ts, rowId, body.name||'', body.email||'', body.investmentRange||'', body.message||'', body.business||'', 'New'];
+            break;
+          case 'investor-register':
+            row = [ts, rowId, body.name||'', body.email||'', body.investmentRange||'', body.areasOfInterest||'', 'New'];
+            break;
+          case 'land-trust':
+            row = [ts, rowId, body.name||'', body.email||'', body.phone||'', body.interest||'', body.message||'', 'New'];
+            break;
+          default:
+            row = [ts, rowId, JSON.stringify(body), '', '', '', '', 'New'];
+        }
+
+        sheet.appendRow(row);
+        result = { ok: true, rowId };
+      }
     }
-
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    let sheet = ss.getSheetByName(tab);
-
-    // Create the tab with headers if it doesn't exist
-    if (!sheet) {
-      sheet = ss.insertSheet(tab);
-      sheet.appendRow(HEADERS[formType] || ['Timestamp', 'Data']);
-      sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight('bold').setBackground('#2d6a2d').setFontColor('#ffffff');
-    }
-
-    const ts = new Date().toISOString();
-    let row;
-
-    switch (formType) {
-      case 'signup':
-        row = [ts, body.firstName||'', body.lastName||'', body.phone||'', body.email||'',
-               body.accountType||'', body.businessName||'', body.businessCategory||'',
-               body.referralProgram||'', body.investorWanted||'No', body.verified ? 'Yes' : 'No'];
-        break;
-      case 'contact':
-        row = [ts, body.name||'', body.email||'', body.subject||'', body.message||''];
-        break;
-      case 'volunteer':
-        row = [ts, body.name||'', body.email||'', body.phone||'', body.opportunity||''];
-        break;
-      case 'investor-interest':
-        row = [ts, body.name||'', body.email||'', body.investmentRange||'', body.message||'', body.business||''];
-        break;
-      case 'investor-register':
-        row = [ts, body.name||'', body.email||'', body.investmentRange||'', body.areasOfInterest||''];
-        break;
-      case 'land-trust':
-        row = [ts, body.name||'', body.email||'', body.phone||'', body.interest||'', body.message||''];
-        break;
-      default:
-        row = [ts, JSON.stringify(body)];
-    }
-
-    sheet.appendRow(row);
-    cors.setContent(JSON.stringify({ ok: true }));
-
   } catch (err) {
-    cors.setContent(JSON.stringify({ ok: false, error: err.toString() }));
+    result = { ok: false, error: err.toString() };
   }
 
-  return cors;
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-// This handles browser preflight OPTIONS requests (CORS)
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ ok: true, message: 'Greenwood 100 API running' }))
-    .setMimeType(ContentService.MimeType.JSON);
+function updateRowStatus(sheetName, rowId, newStatus) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, error: 'Sheet not found: ' + sheetName };
+
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rowIdCol = headers.indexOf('Row ID');
+  const statusCol = headers.indexOf('Status');
+  if (rowIdCol < 0 || statusCol < 0) return { ok: false, error: 'Missing Row ID or Status column' };
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][rowIdCol]) === String(rowId)) {
+      sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Row not found: ' + rowId };
 }
