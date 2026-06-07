@@ -615,7 +615,7 @@
                                         <div class="text-sm text-gray-600">mike@email.com • Joined Jan 2024</div>
                                     </div>
                                     <div class="flex space-x-2">
-                                        <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Contact</button>
+                                        <button onclick="openNewMessageModal('mike@email.com','Mike Wilson')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">💬 Message</button>
                                         <button class="bg-gray-600 text-white px-3 py-1 rounded text-sm">Remove</button>
                                     </div>
                                 </div>
@@ -3536,9 +3536,20 @@
 
         async function handleVolunteerForm(event) {
             event.preventDefault();
-            const formData = new FormData(event.target);
-            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
             const msgEl = document.getElementById('volunteer-modal-msg');
+
+            const name = form.querySelector('[name="volunteerName"]').value.trim();
+            const email = form.querySelector('[name="volunteerEmail"]').value.trim();
+            const phone = form.querySelector('[name="volunteerPhone"]').value.trim();
+            const opportunity = document.getElementById('volunteer-modal-role-input').value || document.getElementById('volunteer-modal-role').textContent || '';
+
+            if (!name || !email) {
+                msgEl.className = 'mt-2 text-sm text-red-600';
+                msgEl.textContent = 'Please fill in name and email.';
+                return;
+            }
 
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
             msgEl.textContent = '';
@@ -3546,20 +3557,12 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    
-                    body: JSON.stringify({
-                        formType: 'volunteer',
-                        name: formData.get('volunteerName') || '',
-                        email: formData.get('volunteerEmail') || '',
-                        phone: formData.get('volunteerPhone') || '',
-                        opportunity: formData.get('volunteerRole') || '',
-                    }),
+                    body: JSON.stringify({ formType: 'volunteer', name, email, phone, opportunity }),
                 });
                 const data = await res.json();
                 if (data.ok) {
                     msgEl.className = 'mt-2 text-sm text-green-700 font-medium';
                     msgEl.textContent = 'Application submitted! Our volunteer coordinator will reach out soon.';
-                    event.target.reset();
                     setTimeout(closeVolunteerModal, 2500);
                 } else {
                     msgEl.className = 'mt-2 text-sm text-red-600';
