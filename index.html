@@ -2847,18 +2847,20 @@
         }
 
         // Initialize business directory
-        async function initializeBusinessDirectory() {
+        function initializeBusinessDirectory() {
             const businessListings = document.getElementById('business-listings');
             if (!businessListings) return;
 
-            // Try to fetch approved businesses from Apps Script; fall back to localStorage
-            let approvedBusinesses = loadApprovedBusinesses();
+            // Render immediately with localStorage data, then refresh from Apps Script
+            const approvedBusinesses = loadApprovedBusinesses();
+            renderBusinessDirectory(approvedBusinesses);
+
+            // Fetch fresh approved list from Apps Script in background
             if (SUBMIT_URL !== '/api/submit') {
-                try {
-                    const res = await fetch(`${SUBMIT_URL}?action=list&sheet=Signups&status=Approved`);
-                    const data = await res.json();
-                    if (data.ok && data.rows && data.rows.length > 0) {
-                        // Merge Apps Script rows with any extra localStorage fields (imageData, videoUrl)
+                fetch(`${SUBMIT_URL}?action=list&sheet=Signups&status=Approved`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.ok || !data.rows) return;
                         const lsMap = {};
                         approvedBusinesses.forEach(b => { lsMap[String(b.id)] = b; });
                         const fetched = data.rows.map(r => {
@@ -2868,7 +2870,7 @@
                                 id: rowId,
                                 name: r['Business Name'] || '',
                                 category: (r['Category'] || 'general').toLowerCase(),
-                                description: r['Description'] || `${r['Business Name']} — community business member.`,
+                                description: r['Description'] || (r['Business Name'] + ' — community business member.'),
                                 baseRating: 5.0,
                                 baseReviews: 0,
                                 phone: r['Phone'] || '',
@@ -2881,14 +2883,16 @@
                                 videoUrl: ls.videoUrl || '',
                             };
                         });
-                        // Save back to localStorage so offline edits persist
-                        const merged = [...fetched];
-                        fetched.forEach(b => { if (!lsMap[b.id]) {} }); // already merged above
-                        saveApprovedBusinesses(merged);
-                        approvedBusinesses = merged;
-                    }
-                } catch(e) { /* use localStorage fallback */ }
+                        saveApprovedBusinesses(fetched);
+                        renderBusinessDirectory(fetched);
+                    })
+                    .catch(() => {}); // keep whatever rendered
             }
+        }
+
+        function renderBusinessDirectory(approvedBusinesses) {
+            const businessListings = document.getElementById('business-listings');
+            if (!businessListings) return;
 
             const sampleBusinesses = [
                 {
