@@ -2956,18 +2956,21 @@
                 ...approvedBusinesses
             ];
 
+            const escAttr = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const escJs = s => String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
+
             businessListings.innerHTML = allBusinesses.map(business => {
+              try {
                 const bizId = String(business.id || business.name);
                 const { rating, count } = calcRating(bizId, business.baseRating || business.rating || 5, business.baseReviews || business.reviews || 0);
                 const stars = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
                 const verifiedBadge = business.verified
                     ? `<span class="ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">⭐ Verified</span>`
                     : '';
-                const safeId = bizId.replace(/'/g, "\\'");
-                const safeName = (business.name||'').replace(/'/g, "\\'");
-                const safeDesc = (business.description||'').replace(/'/g, "\\'");
-                const safePhone = (business.phone||'').replace(/'/g, "\\'");
-                const safeAddr = (business.address||'').replace(/'/g, "\\'");
+                const safeId = escJs(bizId);
+                const safeName = escJs(business.name);
+                const safePhone = escJs(business.phone);
+                const safeAddr = escJs(business.address);
                 const videoEmbed = business.videoUrl ? (() => {
                     const url = business.videoUrl;
                     let embedSrc = '';
@@ -2998,19 +3001,20 @@
                         ${business.address ? `<div class="flex items-center"><span class="mr-2">📍</span><span>${business.address}</span></div>` : ''}
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="contactBusiness(this)" data-bizname="${business.name}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" class="bg-brand-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1 text-sm">
+                        <button onclick="contactBusiness(this)" data-bizname="${escAttr(business.name)}" data-bizphone="${escAttr(business.phone)}" data-bizaddress="${escAttr(business.address)}" class="bg-brand-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex-1 text-sm">
                             Contact
                         </button>
                         <button onclick="openReviewModal('${safeId}','${safeName}')" class="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
                             ✍️ Review
                         </button>
-                        <button onclick="openNewMessageModal('${business.ownerEmail || ('business_' + safeName.toLowerCase().replace(/[^a-z0-9]/g,'-') + '@greenwood100.com')}','${safeName}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm">💬 Message</button>
-                        <button onclick="viewBusinessDetails(this)" data-bizname="${business.name}" data-bizdesc="${business.description}" data-bizrating="${rating}" data-bizreviews="${count}" data-bizphone="${business.phone}" data-bizaddress="${business.address}" data-bizid="${bizId}" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm">
+                        <button onclick="openNewMessageModal('${escJs(business.ownerEmail || '')}','${safeName}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm">💬 Message</button>
+                        <button onclick="viewBusinessDetails(this)" data-bizname="${escAttr(business.name)}" data-bizdesc="${escAttr(business.description)}" data-bizrating="${rating}" data-bizreviews="${count}" data-bizphone="${escAttr(business.phone)}" data-bizaddress="${escAttr(business.address)}" data-bizid="${escAttr(bizId)}" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                             Details
                         </button>
                     </div>
                     </div>
                 </div>`;
+              } catch(e) { return ''; }
             }).join('');
         }
 
