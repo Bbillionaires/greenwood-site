@@ -26,7 +26,7 @@ const TAB_MAP = {
 };
 
 const HEADERS = {
-  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Referral Program','Investor Wanted','Verified','Status'],
+  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Address','Description','Website','Referral Program','Investor Wanted','Verified','Status'],
   'contact':            ['Timestamp','Row ID','Name','Email','Subject','Message','Status'],
   'volunteer':          ['Timestamp','Row ID','Name','Email','Phone','Opportunity','Status'],
   'investor-interest':  ['Timestamp','Row ID','Name','Email','Investment Range','Message','Business Interest','Status'],
@@ -109,7 +109,8 @@ function doPost(e) {
           case 'signup':
             row = [ts, rowId, body.firstName||'', body.lastName||'', body.phone||'',
                    body.email||'', body.accountType||'', body.businessName||'',
-                   body.businessCategory||'', body.referralProgram||'',
+                   body.businessCategory||'', body.address||'', body.description||'',
+                   body.website||'', body.referralProgram||'',
                    body.investorWanted||'No', body.verified ? 'Yes' : 'No', 'Pending'];
             break;
           case 'contact':

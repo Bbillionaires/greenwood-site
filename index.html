@@ -3828,18 +3828,72 @@
             if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
-        function handleAddBusinessForm(event) {
+        async function handleAddBusinessForm(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
             const name = formData.get('bizName') || '';
+            const msgEl = document.getElementById('add-business-msg');
+
             if (!name) {
-                const msgEl = document.getElementById('add-business-msg');
                 msgEl.className = 'text-sm text-red-600';
                 msgEl.textContent = 'Please fill in all required fields.';
                 return;
             }
-            closeAddBusinessModal();
-            showToast('Business submitted for review!', 'green');
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+
+            const payload = {
+                formType: 'signup',
+                accountType: 'business',
+                businessName: formData.get('bizName') || '',
+                businessCategory: formData.get('bizCategory') || '',
+                phone: formData.get('bizPhone') || '',
+                address: formData.get('bizAddress') || '',
+                description: formData.get('bizDescription') || '',
+                website: formData.get('bizWebsite') || '',
+                firstName: currentUser ? currentUser.email.split('@')[0] : 'Guest',
+                lastName: '',
+                email: currentUser ? currentUser.email : '',
+                investorWanted: 'No',
+                verified: false,
+            };
+
+            try {
+                const res = await fetch(SUBMIT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    // Mirror to local pending queue so admin sees it immediately even before reload
+                    const entry = {
+                        id: data.rowId || Date.now(),
+                        businessName: payload.businessName,
+                        category: payload.businessCategory,
+                        ownerEmail: payload.email,
+                        ownerName: payload.firstName,
+                        phone: payload.phone,
+                        investorWanted: 'No',
+                        status: 'Pending',
+                        submittedAt: new Date().toLocaleString()
+                    };
+                    const list = loadPendingBusinesses();
+                    list.push(entry);
+                    savePendingBusinesses(list);
+
+                    closeAddBusinessModal();
+                    showToast('Business submitted! Admin will review shortly.', '#2d6a2d');
+                } else {
+                    msgEl.className = 'text-sm text-red-600';
+                    msgEl.textContent = 'Submission error: ' + (data.error || 'Please try again.');
+                }
+            } catch (err) {
+                msgEl.className = 'text-sm text-red-600';
+                msgEl.textContent = 'Network error. Please try again.';
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Business'; }
+            }
         }
 
         // ===================== UPGRADE PREMIUM MODAL =====================
