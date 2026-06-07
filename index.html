@@ -2790,14 +2790,26 @@
             }
         }
 
-        function adminDeleteListing(rowId) {
+        async function adminDeleteListing(rowId) {
             if (!confirm('Remove this business from the public directory?')) return;
+
+            // Update localStorage immediately
             const approved = loadApprovedBusinesses().filter(x => String(x.id) !== String(rowId));
             saveApprovedBusinesses(approved);
-            // Also mark as rejected in pending list
             const list = loadPendingBusinesses();
             const b = list.find(x => String(x.id) === String(rowId));
             if (b) { b.status = 'Removed'; savePendingBusinesses(list); }
+
+            // Update status in Apps Script so it doesn't come back on next fetch
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    await fetch(SUBMIT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ formType: 'update-status', sheetName: 'Signups', rowId, status: 'Rejected' }),
+                    });
+                } catch(e) {}
+            }
+
             showToast('Listing removed from directory.', '#dc2626');
             refreshAdminBusinessList();
             if (currentPage === 'directory') initializeBusinessDirectory();
