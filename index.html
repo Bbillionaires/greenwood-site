@@ -2589,8 +2589,19 @@
             listDiv.innerHTML = rowsHTML;
         }
 
+        function loadApprovedBusinesses() {
+            try { return JSON.parse(localStorage.getItem('gw100_approved_businesses') || '[]'); } catch(e) { return []; }
+        }
+        function saveApprovedBusinesses(arr) {
+            localStorage.setItem('gw100_approved_businesses', JSON.stringify(arr));
+        }
+
         async function adminUpdateStatus(rowId, newStatus) {
             const usingAppsScript = SUBMIT_URL !== '/api/submit';
+
+            // Find the business record before updating so we can add it to the directory
+            const allPending = loadPendingBusinesses();
+            const record = allPending.find(x => String(x.id) === String(rowId));
 
             if (usingAppsScript) {
                 try {
@@ -2602,14 +2613,41 @@
                     showToast('Error updating status. Check connection.', '#dc2626');
                     return;
                 }
-            } else {
-                // Fallback: update localStorage
-                const list = loadPendingBusinesses();
-                const b = list.find(x => String(x.id) === String(rowId));
-                if (b) { b.status = newStatus; savePendingBusinesses(list); }
             }
 
-            showToast(newStatus === 'Approved' ? 'Business approved!' : 'Business rejected.', newStatus === 'Approved' ? '#2d6a2d' : '#dc2626');
+            // Always update localStorage pending list status
+            const list = loadPendingBusinesses();
+            const b = list.find(x => String(x.id) === String(rowId));
+            if (b) { b.status = newStatus; savePendingBusinesses(list); }
+
+            // If approved, add to the public directory
+            if (newStatus === 'Approved') {
+                const biz = b || record;
+                if (biz && biz.businessName) {
+                    const approved = loadApprovedBusinesses();
+                    // Avoid duplicates
+                    if (!approved.find(x => String(x.id) === String(rowId))) {
+                        approved.push({
+                            id: rowId,
+                            name: biz.businessName,
+                            category: (biz.category || 'general').toLowerCase(),
+                            description: biz.description || `${biz.businessName} — community business member.`,
+                            rating: 5.0,
+                            reviews: 0,
+                            phone: biz.phone || '',
+                            address: biz.address || 'Jacksonville, FL',
+                        });
+                        saveApprovedBusinesses(approved);
+                    }
+                }
+                showToast('Business approved and added to directory!', '#2d6a2d');
+            } else {
+                // If rejected, remove from approved list if it was there
+                const approved = loadApprovedBusinesses().filter(x => String(x.id) !== String(rowId));
+                saveApprovedBusinesses(approved);
+                showToast('Business rejected.', '#dc2626');
+            }
+
             refreshAdminBusinessList();
         }
 
@@ -2621,7 +2659,10 @@
         function initializeBusinessDirectory() {
             const businessListings = document.getElementById('business-listings');
             if (!businessListings) return;
-            
+
+            // Merge hardcoded samples + admin-approved submissions
+            const approvedBusinesses = loadApprovedBusinesses();
+
             const sampleBusinesses = [
                 {
                     name: "Joe's Coffee Shop",
@@ -2679,7 +2720,8 @@
                 }
             ];
             
-            businessListings.innerHTML = sampleBusinesses.map(business => `
+            const allBusinesses = [...sampleBusinesses, ...approvedBusinesses];
+            businessListings.innerHTML = allBusinesses.map(business => `
                 <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-xl font-semibold text-gray-900">${business.name}</h3>
