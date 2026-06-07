@@ -57,26 +57,23 @@
                         <h1 class="text-2xl font-bold brand-green" style="display: none;">🌱 Greenwood 100</h1>
                     </div>
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-4">
-                        <!-- lines 62–73 -->
-<button data-nav="home"          onclick="showPage('home')"          class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Home</button>
-<button data-nav="about"         onclick="showPage('about')"         class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">About</button>
-<button data-nav="directory"     onclick="showPage('directory')"     class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Directory</button>
-<button data-nav="rewards"       onclick="showPage('rewards')"       class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Rewards</button>
-<button data-nav="associations"  onclick="showPage('associations')"  class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Associations</button>
-<button data-nav="courses"       onclick="showPage('courses')"       class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Courses</button>
-<button data-nav="membership"    onclick="showPage('membership')"    class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Membership</button>
-<button data-nav="news"          onclick="showPage('news')"          class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">News</button>
-<button data-nav="contact"       onclick="showPage('contact')"       class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Contact</button>
-<button data-nav="leaderboard"   onclick="showPage('leaderboard')"   class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Leaderboard</button>
-<button data-nav="investors"     onclick="showPage('investors')"     class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Investors</button>
-<button data-nav="volunteers"    onclick="showPage('volunteers')"    class="nav-link text-gray-700 hover:text-brand-green px-3 py-2 text-sm font-medium">Volunteer</button>
-
-<div id="auth-section">
-  <button data-nav="login" onclick="showPage('login')" class="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-green transition-colors">Login</button>
+                <div class="hidden md:block flex-1">
+                    <div class="ml-4 flex flex-wrap items-center gap-x-1 gap-y-1 py-1">
+<button data-nav="home"          onclick="showPage('home')"          class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Home</button>
+<button data-nav="about"         onclick="showPage('about')"         class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">About</button>
+<button data-nav="directory"     onclick="showPage('directory')"     class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Directory</button>
+<button data-nav="rewards"       onclick="showPage('rewards')"       class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Rewards</button>
+<button data-nav="associations"  onclick="showPage('associations')"  class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Associations</button>
+<button data-nav="courses"       onclick="showPage('courses')"       class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Courses</button>
+<button data-nav="membership"    onclick="showPage('membership')"    class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Membership</button>
+<button data-nav="news"          onclick="showPage('news')"          class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">News</button>
+<button data-nav="contact"       onclick="showPage('contact')"       class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Contact</button>
+<button data-nav="leaderboard"   onclick="showPage('leaderboard')"   class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Leaderboard</button>
+<button data-nav="investors"     onclick="showPage('investors')"     class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Investors</button>
+<button data-nav="volunteers"    onclick="showPage('volunteers')"    class="nav-link text-gray-700 hover:text-brand-green px-2 py-1 text-sm font-medium">Volunteer</button>
+<div id="auth-section" class="inline-flex">
+  <button data-nav="login" onclick="showPage('login')" class="bg-brand-green text-white px-3 py-1 rounded-lg hover:opacity-90 transition-colors text-sm">Login</button>
 </div>
-
                     </div>
                 </div>
                 <div class="md:hidden">
@@ -2039,6 +2036,7 @@
         let currentUser = null;
         let currentPage = 'home';
         let userCourses = []; // Track enrolled courses for current user
+        let pendingBusinesses = []; // Businesses submitted via signup, pending admin review
         
         // Navigation system
         function showPage(pageId) {
@@ -2103,28 +2101,27 @@
                 // Determine user type based on email
                 if (email === 'admin@test.com' && password === 'admin123') {
                     currentUser = { type: 'admin', email: email };
-                    alert('Admin login successful! Redirecting to admin dashboard.');
                     updateAuthUI();
                     showPage('admin-dashboard');
+                    showToast('Welcome, Admin!', '#2d6a2d');
                 } else if (email === 'association@test.com' && password === 'password123') {
-                    currentUser = { type: 'association', email: email };
-                    alert('Association leader login successful! Redirecting to association dashboard.');
+                    currentUser = { type: 'association', email: email, name: 'Association Leader' };
                     updateAuthUI();
                     showPage('association-dashboard');
+                    showToast('Welcome, Association Leader!', '#2d6a2d');
                 } else if (email === 'business@test.com' && password === 'password123') {
                     currentUser = { type: 'business', email: email };
-                    alert('Business owner login successful! Redirecting to business dashboard.');
                     updateAuthUI();
                     showPage('business-dashboard');
+                    showToast('Welcome, Business Owner!', '#2d6a2d');
                 } else if (email === 'individual@test.com' && password === 'password123') {
                     currentUser = { type: 'individual', email: email };
-                    alert('Individual member login successful! Redirecting to member dashboard.');
                     updateAuthUI();
                     showPage('member-dashboard');
-                    // Initialize sample enrolled courses for demo
                     initializeSampleEnrolledCourses();
+                    showToast('Welcome back!', '#2d6a2d');
                 } else {
-                    alert('Invalid credentials. Please try the test accounts provided.');
+                    showToast('Invalid credentials. Please check your email and password.', '#dc2626');
                 }
             } else {
                 alert('Please enter both email and password.');
@@ -2156,6 +2153,8 @@
                 selectedTab.classList.remove('border-transparent', 'text-gray-500');
                 selectedTab.classList.add('border-blue-500', 'text-blue-600');
             }
+            // Refresh business list to show pending signups
+            if (tabName === 'businesses') refreshAdminBusinessList();
         }
 
         function showBusinessTab(tabName) {
@@ -2267,25 +2266,25 @@
                 
                 if (email === 'admin@test.com' && password === 'admin123') {
                     currentUser = { type: 'admin', email: email };
-                    alert('Admin login successful! Redirecting to admin dashboard.');
                     updateAuthUI();
                     showPage('admin-dashboard');
+                    showToast('Welcome, Admin!', '#2d6a2d');
                 } else if (email === 'association@test.com' && password === 'password123') {
-                    currentUser = { type: 'association', email: email };
-                    alert('Association leader login successful! Redirecting to association dashboard.');
+                    currentUser = { type: 'association', email: email, name: 'Association Leader' };
                     updateAuthUI();
                     showPage('association-dashboard');
+                    showToast('Welcome, Association Leader!', '#2d6a2d');
                 } else if (email === 'business@test.com' && password === 'password123') {
                     currentUser = { type: 'business', email: email };
-                    alert('Business owner login successful! Redirecting to business dashboard.');
                     updateAuthUI();
                     showPage('business-dashboard');
+                    showToast('Welcome, Business Owner!', '#2d6a2d');
                 } else if (email === 'individual@test.com' && password === 'password123') {
                     currentUser = { type: 'individual', email: email };
-                    alert('Individual member login successful! Redirecting to member dashboard.');
                     updateAuthUI();
                     showPage('member-dashboard');
                     initializeSampleEnrolledCourses();
+                    showToast('Welcome back!', '#2d6a2d');
                 }
             }
         }
@@ -2419,17 +2418,81 @@
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    alert('Account created successfully! You can now log in.');
+                    // If business signup, add to pending review queue for admin
+                    if (payload.accountType === 'business' && payload.businessName) {
+                        pendingBusinesses.push({
+                            id: Date.now(),
+                            businessName: payload.businessName,
+                            category: payload.businessCategory || 'General',
+                            ownerEmail: payload.email,
+                            ownerName: `${payload.firstName} ${payload.lastName}`.trim(),
+                            phone: payload.phone,
+                            investorWanted: payload.investorWanted,
+                            status: 'Pending',
+                            submittedAt: new Date().toLocaleString()
+                        });
+                        refreshAdminBusinessList();
+                    }
+                    showToast('Account created successfully! You can now log in.', '#2d6a2d');
                     event.target.reset();
                     showPage('login');
                 } else {
-                    alert('There was a problem submitting your registration: ' + (data.error || 'Unknown error'));
+                    showToast('Registration error: ' + (data.error || 'Unknown error'), '#dc2626');
                 }
             } catch (err) {
-                alert('Network error. Please try again.');
+                showToast('Network error. Please try again.', '#dc2626');
             } finally {
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Account'; }
             }
+        }
+
+        function refreshAdminBusinessList() {
+            const container = document.getElementById('admin-businesses-content');
+            if (!container) return;
+            const listDiv = container.querySelector('.space-y-4');
+            if (!listDiv) return;
+
+            // Render pending businesses at top, then existing hardcoded ones
+            const pendingHTML = pendingBusinesses.map(b => `
+                <div class="flex items-center justify-between p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
+                    <div>
+                        <div class="font-medium">${b.businessName} <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">NEW</span></div>
+                        <div class="text-sm text-gray-600">${b.category} • ${b.ownerName} • ${b.ownerEmail}</div>
+                        <div class="text-xs text-gray-400">Submitted: ${b.submittedAt}</div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="adminApproveBusiness(${b.id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button>
+                        <button onclick="adminRejectBusiness(${b.id})" class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reject</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const existingHTML = `
+                <div class="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                        <div class="font-medium">Joe's Coffee Shop</div>
+                        <div class="text-sm text-gray-600">Restaurant • Verified</div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button>
+                        <button class="bg-yellow-600 text-white px-3 py-1 rounded text-sm">Review</button>
+                        <button class="bg-red-600 text-white px-3 py-1 rounded text-sm">Reject</button>
+                    </div>
+                </div>
+            `;
+
+            listDiv.innerHTML = pendingHTML + existingHTML;
+        }
+
+        function adminApproveBusiness(id) {
+            const b = pendingBusinesses.find(x => x.id === id);
+            if (b) { b.status = 'Approved'; showToast(`${b.businessName} approved!`, '#2d6a2d'); refreshAdminBusinessList(); }
+        }
+
+        function adminRejectBusiness(id) {
+            pendingBusinesses = pendingBusinesses.filter(x => x.id !== id);
+            showToast('Business rejected and removed.', '#dc2626');
+            refreshAdminBusinessList();
         }
 
         // Initialize business directory
