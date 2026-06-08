@@ -30,9 +30,9 @@ const TAB_MAP = {
 };
 
 const HEADERS = {
-  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Address','Description','Website','Referral Program','Investor Wanted','Verified','Status'],
+  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Address','Description','Website','Referral Program','Investor Wanted','Verified','Status','Home Buying Interest','Skills','Availability','Association','EIN','Mission','Service Area','Member Count','Focus Area'],
   'contact':            ['Timestamp','Row ID','Name','Email','Subject','Message','Status'],
-  'volunteer':          ['Timestamp','Row ID','Name','Email','Phone','Opportunity','Status'],
+  'volunteer':          ['Timestamp','Row ID','Name','Email','Phone','Opportunity','Association','Notes','Status'],
   'investor-interest':  ['Timestamp','Row ID','Name','Email','Investment Range','Message','Business Interest','Status'],
   'investor-register':  ['Timestamp','Row ID','Name','Email','Investment Range','Areas of Interest','Status'],
   'land-trust':         ['Timestamp','Row ID','Name','Email','Phone','Interest Type','Message','Status'],
@@ -259,7 +259,37 @@ function doPost(e) {
     const formType = (body.formType || '').toLowerCase();
 
     // Admin status update (approve / reject)
-    if (formType === 'update-status') {
+    if (formType === 'update-volunteer-notes') {
+      result = updateSheetField('Volunteers', body.rowId, 'Row ID', 'Notes', body.notes || '');
+
+    } else if (formType === 'update-volunteer') {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('Volunteers');
+      if (!sheet) { result = { ok: false, error: 'Sheet not found' }; }
+      else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const idCol = headers.indexOf('Row ID');
+        let found = false;
+        for (let i = 1; i < data.length; i++) {
+          if (String(data[i][idCol]) === String(body.rowId)) {
+            const nameCol = headers.indexOf('Name');
+            const emailCol = headers.indexOf('Email');
+            const phoneCol = headers.indexOf('Phone');
+            const assocCol = headers.indexOf('Association');
+            if (nameCol>=0) sheet.getRange(i+1,nameCol+1).setValue(body.name||'');
+            if (emailCol>=0) sheet.getRange(i+1,emailCol+1).setValue(body.email||'');
+            if (phoneCol>=0) sheet.getRange(i+1,phoneCol+1).setValue(body.phone||'');
+            if (assocCol>=0) sheet.getRange(i+1,assocCol+1).setValue(body.association||'');
+            result = { ok: true };
+            found = true;
+            break;
+          }
+        }
+        if (!found) result = { ok: false, error: 'Volunteer not found' };
+      }
+
+    } else if (formType === 'update-status') {
       result = updateRowStatus(body.sheetName, body.rowId, body.status);
 
     } else if (formType === 'flag-message') {
@@ -377,13 +407,16 @@ function doPost(e) {
                    body.email||'', body.accountType||'', body.businessName||'',
                    body.businessCategory||'', body.address||'', body.description||'',
                    body.website||'', body.referralProgram||'',
-                   body.investorWanted||'No', body.verified ? 'Yes' : 'No', 'Pending'];
+                   body.investorWanted||'No', body.verified ? 'Yes' : 'No', 'Pending',
+                   body.homeBuyingInterest||'', body.skills||'', body.availability||'',
+                   body.association||'', body.ein||'', body.mission||'',
+                   body.serviceArea||'', body.memberCount||'', body.focusArea||''];
             break;
           case 'contact':
             row = [ts, rowId, body.name||'', body.email||'', body.subject||'', body.message||'', 'New'];
             break;
           case 'volunteer':
-            row = [ts, rowId, body.name||'', body.email||'', body.phone||'', body.opportunity||'', 'New'];
+            row = [ts, rowId, body.name||'', body.email||'', body.phone||'', body.opportunity||'', body.association||'', '', 'New'];
             break;
           case 'investor-interest':
             row = [ts, rowId, body.name||'', body.email||'', body.investmentRange||'', body.message||'', body.business||'', 'New'];
@@ -477,4 +510,27 @@ function updateRowStatus(sheetName, rowId, newStatus) {
     }
   }
   return { ok: false, error: 'Row not found: ' + rowId };
+}
+
+function updateSheetField(sheetName, rowId, idColName, fieldName, value) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, error: 'Sheet not found: ' + sheetName };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idCol = headers.indexOf(idColName);
+  let fieldCol = headers.indexOf(fieldName);
+  if (idCol < 0) return { ok: false, error: 'ID column not found' };
+  // Auto-add column if missing
+  if (fieldCol < 0) {
+    fieldCol = headers.length;
+    sheet.getRange(1, fieldCol+1).setValue(fieldName);
+  }
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idCol]) === String(rowId)) {
+      sheet.getRange(i+1, fieldCol+1).setValue(value);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Row not found' };
 }

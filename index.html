@@ -619,6 +619,9 @@
                             <button onclick="showAssociationTab('tasks')" id="association-tasks-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📋 Tasks
                             </button>
+                            <button onclick="showAssociationTab('volunteers')" id="association-volunteers-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                                🙋 Volunteers
+                            </button>
                         </nav>
                     </div>
 
@@ -704,6 +707,16 @@
                                 </div>
                                 <div id="association-task-list" class="space-y-3">
                                     <div class="text-gray-400 text-sm text-center py-8">Loading tasks…</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Volunteers Tab -->
+                        <div id="association-volunteers-content" class="association-tab-content hidden">
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-4">Our Volunteers</h3>
+                                <div id="association-volunteers-list" class="space-y-3">
+                                    <div class="text-gray-400 text-sm text-center py-8">Loading…</div>
                                 </div>
                             </div>
                         </div>
@@ -1193,6 +1206,18 @@
                             <div class="text-2xl mb-1">🏢</div>
                             <div class="text-sm font-medium">Business</div>
                         </button>
+                        <button type="button" onclick="selectAccountType('volunteer')" id="volunteer-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-green-500 transition-colors">
+                            <div class="text-2xl mb-1">🙋</div>
+                            <div class="text-sm font-medium">Volunteer</div>
+                        </button>
+                        <button type="button" onclick="selectAccountType('nonprofit')" id="nonprofit-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-orange-500 transition-colors">
+                            <div class="text-2xl mb-1">🤝</div>
+                            <div class="text-sm font-medium">Non-Profit</div>
+                        </button>
+                        <button type="button" onclick="selectAccountType('association')" id="association-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-teal-500 transition-colors">
+                            <div class="text-2xl mb-1">🏘️</div>
+                            <div class="text-sm font-medium">Neighborhood Association</div>
+                        </button>
                     </div>
                     <form id="signup-form" class="space-y-4" onsubmit="handleSignUp(event)">
                         <input type="hidden" name="accountType" id="selected-account-type">
@@ -1230,6 +1255,93 @@
                                 <option value="other">Other</option>
                             </select>
                         </div>
+                        <!-- Volunteer-specific fields -->
+                        <div id="signup-fields-volunteer" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Skills / Areas of Interest</label>
+                                <textarea name="skills" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green" placeholder="e.g. event planning, mentoring, logistics…"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                                <select name="availability" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                                    <option value="">Select availability</option>
+                                    <option value="Weekdays">Weekdays</option>
+                                    <option value="Weekends">Weekends</option>
+                                    <option value="Evenings">Evenings</option>
+                                    <option value="Flexible">Flexible</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sign up under</label>
+                                <select name="association" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                                    <option value="Greenwood 100 Inc.">Greenwood 100 Inc. (Default)</option>
+                                    <option value="Neighborhood Association">Neighborhood Association</option>
+                                    <option value="Non-Profit Organization">Non-Profit Organization</option>
+                                    <option value="Community Outreach">Community Outreach</option>
+                                    <option value="Youth Programs">Youth Programs</option>
+                                    <option value="Senior Services">Senior Services</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Non-Profit-specific fields -->
+                        <div id="signup-fields-nonprofit" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
+                                <input type="text" name="orgName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">EIN / Tax ID (optional)</label>
+                                <input type="text" name="ein" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green" placeholder="XX-XXXXXXX">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mission Statement</label>
+                                <textarea name="mission" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Service Area</label>
+                                <input type="text" name="serviceArea" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green" placeholder="City, region, or national">
+                            </div>
+                        </div>
+
+                        <!-- Neighborhood Association-specific fields -->
+                        <div id="signup-fields-association" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Association Name</label>
+                                <input type="text" name="assocName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Neighborhood / Area</label>
+                                <input type="text" name="neighborhood" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Member Count</label>
+                                <input type="number" name="memberCount" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Focus</label>
+                                <select name="focusArea" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green">
+                                    <option value="">Select focus</option>
+                                    <option value="Safety">Safety</option>
+                                    <option value="Community Development">Community Development</option>
+                                    <option value="Events">Events</option>
+                                    <option value="Mixed">Mixed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Home Buying Question (all types) -->
+                        <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-800 mb-2">🏠 Do you want to buy a home, or know someone who does?</label>
+                            <select name="homeBuyingInterest" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                                <option value="">Select an option</option>
+                                <option value="Yes - I want to buy">Yes — I want to buy a home</option>
+                                <option value="Yes - I know someone">Yes — I know someone who wants to buy</option>
+                                <option value="Both">Both — me and someone I know</option>
+                                <option value="Not at this time">Not at this time</option>
+                            </select>
+                        </div>
+
                         <div class="flex items-center">
                             <input type="checkbox" name="agreeTerms" required class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
                             <span class="ml-2 text-sm text-gray-600">I agree to the
@@ -2355,6 +2467,7 @@
             if (tabName === 'tasks') {
                 loadAssociationTasks();
             }
+            if (tabName === 'volunteers') loadAssociationVolunteers();
         }
 
         function showMemberTab(tabName) {
@@ -2629,39 +2742,39 @@
         // Account type selection
         function selectAccountType(type) {
             document.getElementById('selected-account-type').value = type;
-            
+
             // Update button styles
             const buttons = document.querySelectorAll('.account-type-btn');
             buttons.forEach(btn => {
-                btn.classList.remove('border-purple-500', 'border-blue-500', 'bg-purple-50', 'bg-blue-50');
+                btn.classList.remove('border-purple-500', 'border-blue-500', 'border-green-500', 'border-orange-500', 'border-teal-500',
+                                    'bg-purple-50', 'bg-blue-50', 'bg-green-50', 'bg-orange-50', 'bg-teal-50');
                 btn.classList.add('border-gray-300');
             });
-            
+
             const selectedBtn = document.getElementById(type + '-btn');
             if (selectedBtn) {
                 selectedBtn.classList.remove('border-gray-300');
-                if (type === 'individual') {
-                    selectedBtn.classList.add('border-purple-500', 'bg-purple-50');
-                } else {
-                    selectedBtn.classList.add('border-blue-500', 'bg-blue-50');
-                }
+                const colorMap = { individual: ['border-purple-500','bg-purple-50'], business: ['border-blue-500','bg-blue-50'], volunteer: ['border-green-500','bg-green-50'], nonprofit: ['border-orange-500','bg-orange-50'], association: ['border-teal-500','bg-teal-50'] };
+                (colorMap[type] || ['border-blue-500','bg-blue-50']).forEach(c => selectedBtn.classList.add(c));
             }
-            
+
             // Show/hide business fields
             const businessFields = document.getElementById('business-fields');
             if (businessFields) {
                 if (type === 'business') {
                     businessFields.classList.remove('hidden');
-                    businessFields.querySelectorAll('input, select').forEach(field => {
-                        field.required = true;
-                    });
+                    businessFields.querySelectorAll('input, select').forEach(field => { field.required = true; });
                 } else {
                     businessFields.classList.add('hidden');
-                    businessFields.querySelectorAll('input, select').forEach(field => {
-                        field.required = false;
-                    });
+                    businessFields.querySelectorAll('input, select').forEach(field => { field.required = false; });
                 }
             }
+
+            // Show/hide new type-specific field groups
+            ['volunteer', 'nonprofit', 'association'].forEach(t => {
+                const el = document.getElementById('signup-fields-' + t);
+                if (el) el.classList.toggle('hidden', type !== t);
+            });
         }
 
         // Sign up functionality
@@ -2697,6 +2810,15 @@
                     referralProgram: formData.get('referralProgram') || '',
                     investorWanted: formData.get('investorWanted') || 'No',
                     verified: formData.get('verified') === 'on',
+                    homeBuyingInterest: formData.get('homeBuyingInterest') || '',
+                    skills: formData.get('skills') || '',
+                    availability: formData.get('availability') || '',
+                    association: formData.get('association') || '',
+                    ein: formData.get('ein') || '',
+                    mission: formData.get('mission') || '',
+                    serviceArea: formData.get('serviceArea') || '',
+                    memberCount: formData.get('memberCount') || '',
+                    focusArea: formData.get('focusArea') || '',
                 };
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
@@ -3855,6 +3977,7 @@
             const name = form.querySelector('[name="volunteerName"]').value.trim();
             const email = form.querySelector('[name="volunteerEmail"]').value.trim();
             const phone = form.querySelector('[name="volunteerPhone"]').value.trim();
+            const association = (form.querySelector('[name="volunteerAssociation"]') || {}).value || 'Greenwood 100 Inc.';
             const opportunity = document.getElementById('volunteer-modal-role-input').value || document.getElementById('volunteer-modal-role').textContent || '';
 
             if (!name || !email) {
@@ -3869,7 +3992,7 @@
             try {
                 const res = await fetch(SUBMIT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ formType: 'volunteer', name, email, phone, opportunity }),
+                    body: JSON.stringify({ formType: 'volunteer', name, email, phone, opportunity, association }),
                 });
                 const data = await res.json();
                 if (data.ok) {
@@ -4899,6 +5022,17 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                         <input type="tel" name="volunteerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sign up under</label>
+                        <select name="volunteerAssociation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green text-sm">
+                            <option value="Greenwood 100 Inc.">Greenwood 100 Inc. (Default)</option>
+                            <option value="Neighborhood Association">Neighborhood Association</option>
+                            <option value="Non-Profit Organization">Non-Profit Organization</option>
+                            <option value="Community Outreach">Community Outreach</option>
+                            <option value="Youth Programs">Youth Programs</option>
+                            <option value="Senior Services">Senior Services</option>
+                        </select>
+                    </div>
                     <button type="submit" class="w-full bg-brand-green text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">Submit Application</button>
                     <div id="volunteer-modal-msg" class="text-sm"></div>
                 </form>
@@ -5548,11 +5682,11 @@
         function loadTasks() { try { return JSON.parse(localStorage.getItem('gw100_tasks') || '[]'); } catch(e) { return []; } }
         function saveTasks(arr) { localStorage.setItem('gw100_tasks', JSON.stringify(arr)); }
 
-        function openCreateTaskModal() {
+        function openCreateTaskModal(toEmail, toName) {
             if (!currentUser) { showToast('Please log in.', '#dc2626'); return; }
             document.getElementById('task-title').value = '';
             document.getElementById('task-description').value = '';
-            document.getElementById('task-assignee').value = '';
+            document.getElementById('task-assignee').value = toEmail || '';
             document.getElementById('task-due-date').value = '';
             document.getElementById('task-create-error').classList.add('hidden');
             const m = document.getElementById('create-task-modal');
@@ -5964,49 +6098,77 @@
             const container = document.getElementById('admin-volunteers-list');
             if (!container) return;
             container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading…</div>';
-
             let rows = [];
             try {
                 const res = await fetch(`${SUBMIT_URL}?action=list&sheet=Volunteers`);
                 const data = await res.json();
                 if (data.ok) rows = data.rows || [];
             } catch(e) {}
-
             if (!rows.length) {
                 container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No volunteer applications yet.</div>';
                 return;
             }
-
+            const escA = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
             container.innerHTML = rows.map(r => {
+                const rowId = String(r['Row ID'] || '');
                 const name = r['Name'] || '';
                 const email = r['Email'] || '';
                 const phone = r['Phone'] || '';
                 const opportunity = r['Opportunity'] || '';
                 const status = r['Status'] || 'New';
+                const notes = r['Notes'] || r['Admin Notes'] || '';
+                const association = r['Association'] || 'Greenwood 100 Inc.';
                 const ts = r['Timestamp'] ? new Date(r['Timestamp']).toLocaleString() : '';
-                const rowId = r['Row ID'] || '';
-                const statusColor = status === 'New' ? 'bg-blue-50 border-blue-200' : status === 'Contacted' ? 'bg-yellow-50 border-yellow-200' : status === 'Active' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200';
-                return `<div class="p-4 border rounded-lg ${statusColor}">
-                    <div class="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                            <div class="font-semibold text-gray-900">${name}</div>
-                            <div class="text-sm text-gray-600">${email}${phone ? ' · ' + phone : ''}</div>
-                            <div class="text-sm text-gray-700 mt-1">Opportunity: <strong>${opportunity}</strong></div>
-                            ${ts ? `<div class="text-xs text-gray-400 mt-1">Applied: ${ts}</div>` : ''}
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-xs px-2 py-0.5 rounded-full font-medium text-center ${status==='Active'?'bg-green-200 text-green-800':status==='Contacted'?'bg-yellow-200 text-yellow-800':'bg-blue-200 text-blue-800'}">${status}</span>
-                            <select onchange="updateVolunteerStatus('${rowId}', this.value)" class="text-xs border border-gray-300 rounded px-2 py-1 mt-1">
-                                <option value="">Update status…</option>
-                                <option value="New">New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>`;
+                const statusColor = status==='Active'?'bg-green-50 border-green-200':status==='Contacted'?'bg-yellow-50 border-yellow-200':'bg-blue-50 border-blue-200';
+                return `<div class="p-4 border rounded-lg ${statusColor}" id="vol-card-${escA(rowId)}">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+                <div>
+                    <div class="font-semibold text-gray-900">${name}</div>
+                    <div class="text-sm text-gray-600">${email}${phone?' · '+phone:''}</div>
+                    <div class="text-sm text-gray-700 mt-1">Opportunity: <strong>${opportunity}</strong></div>
+                    <div class="text-sm text-gray-500">Association: <strong>${association}</strong></div>
+                    ${ts?`<div class="text-xs text-gray-400 mt-1">Applied: ${ts}</div>`:''}
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium ${status==='Active'?'bg-green-200 text-green-800':status==='Contacted'?'bg-yellow-200 text-yellow-800':'bg-blue-200 text-blue-800'}">${status}</span>
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Admin Notes</label>
+                <textarea id="vol-notes-${escA(rowId)}" rows="2" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-green-500" placeholder="Add notes…">${notes}</textarea>
+                <button data-row-id="${escA(rowId)}" onclick="saveVolunteerNotes(this.dataset.rowId)" class="mt-1 text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-gray-700">Save Notes</button>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <select data-row-id="${escA(rowId)}" onchange="updateVolunteerStatus(this.dataset.rowId, this.value)" class="text-xs border border-gray-300 rounded px-2 py-1">
+                    <option value="">Status…</option>
+                    <option value="New" ${status==='New'?'selected':''}>New</option>
+                    <option value="Contacted" ${status==='Contacted'?'selected':''}>Contacted</option>
+                    <option value="Active" ${status==='Active'?'selected':''}>Active</option>
+                    <option value="Inactive" ${status==='Inactive'?'selected':''}>Inactive</option>
+                </select>
+                <button data-row-id="${escA(rowId)}" data-vol-name="${escA(name)}" data-vol-email="${escA(email)}" onclick="openVolunteerEditModal(this.dataset.rowId,this.dataset.volName,this.dataset.volEmail)" class="text-xs bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800">✏️ Edit</button>
+                <button data-vol-email="${escA(email)}" data-vol-name="${escA(name)}" onclick="openCreateTaskModal(this.dataset.volEmail,this.dataset.volName)" class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">📋 Assign Task</button>
+                <button data-row-id="${escA(rowId)}" onclick="adminDeleteVolunteer(this.dataset.rowId)" class="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">🗑️ Delete</button>
+            </div>
+        </div>`;
             }).join('');
+        }
+
+        async function saveVolunteerNotes(rowId) {
+            const el = document.getElementById('vol-notes-' + rowId) || document.getElementById('assoc-vol-notes-' + rowId);
+            if (!el) return;
+            const notes = el.value;
+            try {
+                await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-volunteer-notes', rowId, notes }) });
+                showToast('Notes saved!', '#2d6a2d');
+            } catch(e) { showToast('Error saving notes.', '#dc2626'); }
+        }
+
+        async function adminDeleteVolunteer(rowId) {
+            if (!confirm('Remove this volunteer?')) return;
+            try {
+                await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-status', sheetName: 'Volunteers', rowId, status: 'Removed' }) });
+                showToast('Volunteer removed.', '#dc2626');
+                loadAdminVolunteers();
+            } catch(e) { showToast('Error.', '#dc2626'); }
         }
 
         async function updateVolunteerStatus(rowId, newStatus) {
@@ -6016,6 +6178,81 @@
                 showToast('Status updated!', '#2d6a2d');
                 loadAdminVolunteers();
             } catch(e) { showToast('Error updating status.', '#dc2626'); }
+        }
+
+        function openVolunteerEditModal(rowId, name, email) {
+            document.getElementById('vol-edit-row-id').value = rowId;
+            document.getElementById('vol-edit-name').value = name;
+            document.getElementById('vol-edit-email').value = email;
+            document.getElementById('vol-edit-phone').value = '';
+            const m = document.getElementById('volunteer-edit-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+        function closeVolunteerEditModal() {
+            const m = document.getElementById('volunteer-edit-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        async function saveVolunteerEdit() {
+            const rowId = document.getElementById('vol-edit-row-id').value;
+            const name = document.getElementById('vol-edit-name').value.trim();
+            const email = document.getElementById('vol-edit-email').value.trim();
+            const phone = document.getElementById('vol-edit-phone').value.trim();
+            const association = document.getElementById('vol-edit-association').value;
+            try {
+                await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-volunteer', rowId, name, email, phone, association }) });
+                showToast('Volunteer updated!', '#2d6a2d');
+                closeVolunteerEditModal();
+                loadAdminVolunteers();
+            } catch(e) { showToast('Error saving.', '#dc2626'); }
+        }
+
+        async function loadAssociationVolunteers() {
+            const container = document.getElementById('association-volunteers-list');
+            if (!container) return;
+            container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading…</div>';
+            let rows = [];
+            try {
+                const res = await fetch(`${SUBMIT_URL}?action=list&sheet=Volunteers`);
+                const data = await res.json();
+                if (data.ok) rows = (data.rows||[]).filter(r => r['Status'] !== 'Removed');
+            } catch(e) {}
+            if (!rows.length) {
+                container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No volunteers yet.</div>';
+                return;
+            }
+            const escA = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+            container.innerHTML = rows.map(r => {
+                const rowId = String(r['Row ID']||'');
+                const name = r['Name']||'';
+                const email = r['Email']||'';
+                const phone = r['Phone']||'';
+                const opportunity = r['Opportunity']||'';
+                const status = r['Status']||'New';
+                const notes = r['Notes']||r['Admin Notes']||'';
+                return `<div class="p-4 border rounded-lg bg-white border-gray-200">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+                <div>
+                    <div class="font-semibold text-gray-900">${name}</div>
+                    <div class="text-sm text-gray-600">${email}${phone?' · '+phone:''}</div>
+                    <div class="text-sm text-gray-700 mt-1">Role: <strong>${opportunity}</strong></div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium ${status==='Active'?'bg-green-200 text-green-800':status==='Contacted'?'bg-yellow-200 text-yellow-800':'bg-blue-200 text-blue-800'}">${status}</span>
+            </div>
+            <div class="mb-3">
+                <textarea id="assoc-vol-notes-${escA(rowId)}" rows="2" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-green-500" placeholder="Notes…">${notes}</textarea>
+                <button data-row-id="${escA(rowId)}" onclick="saveVolunteerNotes(this.dataset.rowId)" class="mt-1 text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-gray-700">Save Notes</button>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <select data-row-id="${escA(rowId)}" onchange="updateVolunteerStatus(this.dataset.rowId, this.value)" class="text-xs border border-gray-300 rounded px-2 py-1">
+                    <option value="">Status…</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+                <button data-vol-email="${escA(email)}" data-vol-name="${escA(name)}" onclick="openCreateTaskModal(this.dataset.volEmail,this.dataset.volName)" class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">📋 Assign Task</button>
+            </div>
+        </div>`;
+            }).join('');
         }
 
         async function loadAdminReceipts() {
@@ -6137,6 +6374,44 @@
             <div class="flex gap-3 pt-2">
                 <button onclick="closeReceiptModal()" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Cancel</button>
                 <button id="receipt-submit-btn" onclick="submitReceipt()" class="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 text-sm font-medium">Submit Receipt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Volunteer Edit Modal -->
+<div id="volunteer-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+        <div class="flex items-center justify-between p-6 border-b">
+            <h2 class="text-xl font-bold text-gray-900">✏️ Edit Volunteer</h2>
+            <button onclick="closeVolunteerEditModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+        <div class="p-6 space-y-4">
+            <input type="hidden" id="vol-edit-row-id">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" id="vol-edit-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="vol-edit-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input type="tel" id="vol-edit-phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Association</label>
+                <select id="vol-edit-association" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                    <option value="Greenwood 100 Inc.">Greenwood 100 Inc.</option>
+                    <option value="Neighborhood Association">Neighborhood Association</option>
+                    <option value="Non-Profit Organization">Non-Profit Organization</option>
+                    <option value="Community Outreach">Community Outreach</option>
+                </select>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeVolunteerEditModal()" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Cancel</button>
+                <button onclick="saveVolunteerEdit()" class="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 text-sm font-medium">Save Changes</button>
             </div>
         </div>
     </div>
