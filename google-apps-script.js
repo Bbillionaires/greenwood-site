@@ -26,6 +26,7 @@ const TAB_MAP = {
   'message':            'Messages',
   'task':               'Tasks',
   'receipt':            'Receipts',
+  'otp':                'OTP',
 };
 
 const HEADERS = {
@@ -38,6 +39,7 @@ const HEADERS = {
   'message':            ['Timestamp','Message ID','Thread ID','From','To','To Name','Subject','Message','Read','Flagged','Deleted'],
   'task':               ['Timestamp','Task ID','Title','Description','Due Date','Assigned To','Assigned By','Status','Notes','Last Updated'],
   'receipt':            ['Timestamp','Receipt ID','User Email','Business Name','Amount','Receipt Date','Image Hash','Image Data','Status','Points Awarded','Admin Notes'],
+  'otp':                ['Timestamp','Email','OTP','Expires','Used'],
 };
 
 // ---- READ (admin dashboard fetches live data) ----
@@ -141,6 +143,105 @@ function doGet(e) {
         result = { ok: true, rows };
       }
     } catch(err) { result = { ok: false, error: err.toString() }; }
+  } else if (action === 'send-otp') {
+    const email = e.parameter.email || '';
+    try {
+      // Generate 6-digit OTP
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
+      const ts = new Date().toISOString();
+
+      // Store in OTP sheet
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      let sheet = ss.getSheetByName('OTP');
+      if (!sheet) {
+        sheet = ss.insertSheet('OTP');
+        const hr = sheet.getRange(1,1,1,5);
+        hr.setValues([['Timestamp','Email','OTP','Expires','Used']]);
+        hr.setFontWeight('bold').setBackground('#2d6a2d').setFontColor('#ffffff');
+      }
+      sheet.appendRow([ts, email, otp, expires, 'No']);
+
+      // Send email
+      MailApp.sendEmail({
+        to: email,
+        subject: 'Greenwood 100 — Your Login Code',
+        body: `Your Greenwood 100 verification code is:\n\n${otp}\n\nThis code expires in 10 minutes. If you did not request this, please ignore this email.\n\n— Greenwood 100 Inc.`,
+        htmlBody: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f9fafb;border-radius:12px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <h1 style="color:#2d6a2d;font-size:24px;margin:0;">Greenwood 100</h1>
+          </div>
+          <div style="background:white;border-radius:8px;padding:24px;text-align:center;">
+            <p style="color:#374151;margin-bottom:16px;">Your verification code is:</p>
+            <div style="font-size:40px;font-weight:bold;letter-spacing:8px;color:#2d6a2d;padding:16px;background:#f0fdf4;border-radius:8px;margin:0 auto 16px;">${otp}</div>
+            <p style="color:#6b7280;font-size:14px;">Expires in 10 minutes</p>
+          </div>
+          <p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:16px;">If you didn't request this code, you can safely ignore this email.</p>
+        </div>`
+      });
+      result = { ok: true };
+    } catch(err) { result = { ok: false, error: err.toString() }; }
+
+  } else if (action === 'verify-otp') {
+    const email = e.parameter.email || '';
+    const otp = e.parameter.otp || '';
+    try {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('OTP');
+      if (!sheet) { result = { ok: false, error: 'No OTP found' }; }
+      else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const emailCol = headers.indexOf('Email');
+        const otpCol = headers.indexOf('OTP');
+        const expiresCol = headers.indexOf('Expires');
+        const usedCol = headers.indexOf('Used');
+        let found = false;
+        for (let i = data.length - 1; i >= 1; i--) {
+          if (String(data[i][emailCol]).toLowerCase() === email.toLowerCase() &&
+              String(data[i][otpCol]) === String(otp) &&
+              data[i][usedCol] !== 'Yes') {
+            const expires = new Date(data[i][expiresCol]);
+            if (new Date() > expires) {
+              result = { ok: false, error: 'OTP expired. Please request a new one.' };
+            } else {
+              // Mark as used
+              sheet.getRange(i+1, usedCol+1).setValue('Yes');
+              // Look up user in Signups sheet
+              const signups = ss.getSheetByName('Signups');
+              let userType = 'member';
+              let firstName = '';
+              let lastName = '';
+              let businessName = '';
+              if (signups) {
+                const sdata = signups.getDataRange().getValues();
+                const sheaders = sdata[0];
+                const emailIdx = sheaders.indexOf('Email');
+                const typeIdx = sheaders.indexOf('Account Type');
+                const firstIdx = sheaders.indexOf('First Name');
+                const lastIdx = sheaders.indexOf('Last Name');
+                const bizIdx = sheaders.indexOf('Business Name');
+                const statusIdx = sheaders.indexOf('Status');
+                for (let j = sdata.length - 1; j >= 1; j--) {
+                  if (String(sdata[j][emailIdx]).toLowerCase() === email.toLowerCase() && sdata[j][statusIdx] === 'Approved') {
+                    userType = (sdata[j][typeIdx] || 'member').toLowerCase();
+                    firstName = sdata[j][firstIdx] || '';
+                    lastName = sdata[j][lastIdx] || '';
+                    businessName = sdata[j][bizIdx] || '';
+                    break;
+                  }
+                }
+              }
+              result = { ok: true, email, userType, firstName, lastName, businessName };
+            }
+            found = true;
+            break;
+          }
+        }
+        if (!found) result = { ok: false, error: 'Invalid OTP. Please try again.' };
+      }
+    } catch(err) { result = { ok: false, error: err.toString() }; }
+
   } else {
     result = { ok: true, message: 'Greenwood 100 API is running' };
   }

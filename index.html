@@ -1094,215 +1094,143 @@
 
         <!-- Login Page -->
         <section id="login" class="page-section hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Login & Sign Up</h1>
-                    <p class="text-xl text-gray-600">Access your account or create a new one</p>
-                </div>
+            <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+                <div class="max-w-md w-full">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-green-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">🌿</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-900">Welcome Back</h2>
+                        <p class="text-gray-600 mt-2">Sign in to your Greenwood 100 account</p>
+                    </div>
 
-                <div class="grid lg:grid-cols-2 gap-12 max-w-4xl mx-auto">
-                    <!-- Login Form -->
-                    <div class="bg-white p-8 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-6">🔑 Member Login</h2>
-                        <form onsubmit="handleStandaloneLogin(event)" class="space-y-4">
+                    <!-- Step 1: Email entry -->
+                    <div id="login-step-email" class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Enter your email</h3>
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                                <input type="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input type="email" id="login-email-input" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="your@email.com" onkeydown="if(event.key==='Enter') requestOTP()">
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-                                <input type="password" name="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
-                                    <span class="ml-2 text-sm text-gray-600">Remember me</span>
-                                </label>
-                                <button type="button" onclick="showForgotPassword()" class="text-sm text-brand-green hover:text-green-700">
-                                    Forgot password?
-                                </button>
-                            </div>
-                            <button type="submit" class="w-full bg-brand-green text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
-                                Login to Account
+                            <div id="login-email-error" class="text-sm text-red-600 hidden"></div>
+
+                            <!-- Admin shortcut -->
+                            <details class="text-sm text-gray-500">
+                                <summary class="cursor-pointer hover:text-gray-700">Admin login</summary>
+                                <div class="mt-3 space-y-2 p-3 bg-gray-50 rounded-lg">
+                                    <input type="password" id="admin-password-input" placeholder="Admin password" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500" onkeydown="if(event.key==='Enter') adminLogin()">
+                                    <button onclick="adminLogin()" class="w-full bg-gray-700 text-white py-2 rounded-lg text-sm hover:bg-gray-800">Admin Sign In</button>
+                                </div>
+                            </details>
+
+                            <button id="otp-request-btn" onclick="requestOTP()" class="w-full bg-green-700 text-white py-3 rounded-lg font-medium hover:bg-green-800 transition-colors">
+                                Send Verification Code
                             </button>
-                        </form>
-                        
-                        <div class="mt-6 text-center">
-                            <p class="text-gray-600 mb-4">Test Login Credentials:</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="bg-purple-50 p-2 rounded">
-                                    <p class="font-semibold text-purple-800">Individual Member:</p>
-                                    <p>📧 individual@test.com | 🔑 password123</p>
-                                    <button onclick="quickLogin('individual@test.com', 'password123')" class="mt-1 bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700">
-                                        Quick Login
-                                    </button>
-                                </div>
-                                <div class="bg-blue-50 p-2 rounded">
-                                    <p class="font-semibold text-blue-800">Business Owner:</p>
-                                    <p>📧 business@test.com | 🔑 password123</p>
-                                    <button onclick="quickLogin('business@test.com', 'password123')" class="mt-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
-                                        Quick Login
-                                    </button>
-                                </div>
-                                <div class="bg-green-50 p-2 rounded">
-                                    <p class="font-semibold text-green-800">Association Leader:</p>
-                                    <p>📧 association@test.com | 🔑 password123</p>
-                                    <button onclick="quickLogin('association@test.com', 'password123')" class="mt-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
-                                        Quick Login
-                                    </button>
-                                </div>
-                                <div class="bg-red-50 p-2 rounded">
-                                    <p class="font-semibold text-red-800">Admin Access:</p>
-                                    <p>📧 admin@test.com | 🔑 admin123</p>
-                                    <button onclick="quickLogin('admin@test.com', 'admin123')" class="mt-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
-                                        Quick Login
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Sign Up Form -->
-                    <div class="bg-white p-8 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-6">📝 Create Account</h2>
-                        
-                        <!-- Account Type Selection -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-3">Account Type *</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" onclick="selectAccountType('individual')" id="individual-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-purple-500 transition-colors">
-                                    <div class="text-2xl mb-1">👤</div>
-                                    <div class="text-sm font-medium">Individual</div>
-                                </button>
-                                <button type="button" onclick="selectAccountType('business')" id="business-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors">
-                                    <div class="text-2xl mb-1">🏢</div>
-                                    <div class="text-sm font-medium">Business</div>
-                                </button>
+                    <!-- Step 2: OTP entry -->
+                    <div id="login-step-otp" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Check your email</h3>
+                        <p class="text-gray-600 text-sm mb-6">We sent a 6-digit code to <strong id="login-otp-email-display"></strong></p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+                                <input type="text" id="login-otp-input" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center text-2xl font-bold tracking-widest" placeholder="000000" onkeydown="if(event.key==='Enter') verifyOTP()">
+                            </div>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="remember-me-checkbox" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                <span class="text-sm text-gray-700">Remember me for 30 days</span>
+                            </label>
+                            <div id="login-otp-error" class="text-sm text-red-600 hidden"></div>
+                            <button id="otp-verify-btn" onclick="verifyOTP()" class="w-full bg-green-700 text-white py-3 rounded-lg font-medium hover:bg-green-800 transition-colors">
+                                Verify &amp; Sign In
+                            </button>
+                            <button onclick="backToEmail()" class="w-full text-gray-500 text-sm hover:text-gray-700 py-2">
+                                ← Use a different email
+                            </button>
+                            <button onclick="requestOTP(true)" id="resend-otp-btn" class="w-full text-green-700 text-sm hover:text-green-800 py-1">
+                                Resend code
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-gray-500 text-sm mt-6">
+                        Don't have an account? <button onclick="showPage('signup')" class="text-green-700 font-medium hover:text-green-800">Sign up free</button>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signup Page -->
+        <section id="signup" class="page-section hidden">
+            <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900">Create Your Account</h2>
+                    <p class="text-gray-600 mt-2">Join Greenwood 100 today</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Type</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button type="button" onclick="selectAccountType('individual')" id="individual-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-purple-500 transition-colors">
+                            <div class="text-2xl mb-1">👤</div>
+                            <div class="text-sm font-medium">Individual</div>
+                        </button>
+                        <button type="button" onclick="selectAccountType('business')" id="business-btn" class="account-type-btn p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors">
+                            <div class="text-2xl mb-1">🏢</div>
+                            <div class="text-sm font-medium">Business</div>
+                        </button>
+                    </div>
+                    <form id="signup-form" class="space-y-4" onsubmit="handleSignUp(event)">
+                        <input type="hidden" name="accountType" id="selected-account-type">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                                <input type="text" name="firstName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                                <input type="text" name="lastName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
                             </div>
                         </div>
-
-                        <form id="signup-form" class="space-y-4" onsubmit="handleSignUp(event)">
-                            <input type="hidden" name="accountType" id="selected-account-type">
-                            
-                            <div class="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                                    <input type="text" name="firstName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                                    <input type="text" name="lastName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                                <input type="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                                <input type="tel" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-                                <input type="password" name="password" required minlength="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-                                <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
-                                
-                            <div>
-    <label for="businessName" class="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-    <input type="text" id="businessName" name="businessName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="Enter your business name" required>
-</div>
-
-<div>
-    <label for="businessCategory" class="block text-sm font-medium text-gray-700 mb-2">Business Category *</label>
-    <select id="businessCategory" name="businessCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" required>
-        <option value="">Select category</option>
-        <option value="restaurant">Restaurant</option>
-        <option value="retail">Retail</option>
-        <option value="services">Services</option>
-        <option value="healthcare">Healthcare</option>
-        <option value="automotive">Automotive</option>
-        <option value="other">Other</option>
-    </select>
-</div>
-<!-- Business Category -->
-<div>
-    <label for="businessCategory" class="block text-sm font-medium text-gray-700 mb-2">Business Category *</label>
-    <select id="businessCategory" name="businessCategory"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" required>
-        <option value="">Select category</option>
-        <option value="restaurant">Restaurant</option>
-        <option value="retail">Retail</option>
-        <option value="services">Services</option>
-        <option value="healthcare">Healthcare</option>
-        <option value="automotive">Automotive</option>
-        <option value="other">Other</option>
-    </select>
-</div>
-
-<!-- INSERT NEW BLOCK HERE -->
-
-<!-- Referral Program -->
-<div>
-    <label for="referralProgram" class="block text-sm font-medium text-gray-700 mb-2">Referral Program</label>
-    <input type="text" id="referralProgram" name="referralProgram"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green"
-        placeholder="e.g., 10% or $50">
-</div>
-
-<!-- Investor Wanted -->
-<div>
-    <label for="investorWanted" class="block text-sm font-medium text-gray-700 mb-2">Investor Wanted</label>
-    <select id="investorWanted" name="investorWanted"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
-        <option value="No">No</option>
-        <option value="Yes">Yes</option>
-    </select>
-</div>
-
-<!-- Verified Checkbox -->
-<div class="flex items-center">
-    <input type="checkbox" id="verified" name="verified"
-        class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
-    <label for="verified" class="ml-2 text-sm text-gray-700">Verified</label>
-</div>
-
-<!-- Continue with existing Terms + Submit -->
-<div class="flex items-center">
-    <input type="checkbox" name="agreeTerms" required class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
-    <span class="ml-2 text-sm text-gray-600">I agree to the
-        <a href="#" class="text-brand-green hover:text-green-700">Terms of Service</a> and
-        <a href="#" class="text-brand-green hover:text-green-700">Privacy Policy</a>
-    </span>
-</div>
-
-<button type="submit"
-    class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
-    Create Account
-</button>
-</form>
-<div class="flex items-center mt-4">
-    <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
-    <label for="agreeTerms" class="ml-2 text-sm text-gray-600">
-        I agree to the 
-        <a href="#" class="text-brand-green hover:text-green-700">Terms of Service</a> 
-        and 
-        <a href="#" class="text-brand-green hover:text-green-700">Privacy Policy</a>.
-    </label>
-</div>
-
-<button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold mt-6">
-    Create Account
-</button>
-</form>
-           
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                            <input type="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
+                            <input type="text" name="businessName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green" placeholder="Enter your business name (if applicable)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Business Category</label>
+                            <select name="businessCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-brand-green">
+                                <option value="">Select category</option>
+                                <option value="restaurant">Restaurant</option>
+                                <option value="retail">Retail</option>
+                                <option value="services">Services</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="automotive">Automotive</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="agreeTerms" required class="rounded border-gray-300 text-brand-green focus:ring-brand-green">
+                            <span class="ml-2 text-sm text-gray-600">I agree to the
+                                <a href="#" class="text-brand-green hover:text-green-700">Terms of Service</a> and
+                                <a href="#" class="text-brand-green hover:text-green-700">Privacy Policy</a>
+                            </span>
+                        </div>
+                        <button type="submit" class="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition-colors font-semibold">
+                            Create Account
+                        </button>
+                    </form>
+                    <p class="text-center text-gray-500 text-sm mt-4">
+                        Already have an account? <button onclick="showPage('login')" class="text-green-700 font-medium hover:text-green-800">Sign in</button>
+                    </p>
                 </div>
             </div>
         </section>
@@ -2156,6 +2084,32 @@
         // with your deployed Apps Script Web App URL:
         const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbyu7SZeJJ7ZqG-bH8YW-dC599r1_yh-LwcYmrAKK1K-p_mL7IPLp5Y5gX3xY3rFPTMrag/exec';
 
+        // ---- REMEMBER ME HELPERS ----
+        const REMEMBER_ME_KEY = 'gw100_remember_token';
+        const REMEMBER_ME_DAYS = 30;
+
+        function saveRememberToken(user) {
+            const token = { user, expires: Date.now() + REMEMBER_ME_DAYS * 24 * 60 * 60 * 1000 };
+            localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(token));
+        }
+
+        function loadRememberToken() {
+            try {
+                const raw = localStorage.getItem(REMEMBER_ME_KEY);
+                if (!raw) return null;
+                const token = JSON.parse(raw);
+                if (!token.expires || Date.now() > token.expires) {
+                    localStorage.removeItem(REMEMBER_ME_KEY);
+                    return null;
+                }
+                return token.user;
+            } catch(e) { return null; }
+        }
+
+        function clearRememberToken() {
+            localStorage.removeItem(REMEMBER_ME_KEY);
+        }
+
         async function hashImage(base64) {
             try {
                 const str = base64.slice(0, 50000); // use first 50KB for speed
@@ -2230,7 +2184,17 @@
                     showPage('home');
                 }
             } else {
-                showPage('home');
+                // Check remember-me token if no active session
+                const remembered = loadRememberToken();
+                if (remembered) {
+                    currentUser = remembered;
+                    updateAuthUI();
+                    const dashMap = { admin: 'admin-dashboard', association: 'association-dashboard', business: 'business-dashboard', individual: 'member-dashboard' };
+                    const dest = dashMap[currentUser.type] || 'home';
+                    showPage(dest);
+                } else {
+                    showPage('home');
+                }
             }
         });
 
@@ -2473,9 +2437,116 @@
             }
         }
 
+        // ===================== OTP LOGIN =====================
+
+        async function requestOTP(isResend) {
+            const email = (document.getElementById('login-email-input').value || '').trim();
+            const errEl = document.getElementById('login-email-error');
+            errEl.classList.add('hidden');
+
+            if (!email || !email.includes('@')) {
+                errEl.textContent = 'Please enter a valid email address.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('otp-request-btn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+            try {
+                const res = await fetch(`${SUBMIT_URL}?action=send-otp&email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('login-step-email').classList.add('hidden');
+                    document.getElementById('login-step-otp').classList.remove('hidden');
+                    document.getElementById('login-otp-email-display').textContent = email;
+                    document.getElementById('login-otp-input').value = '';
+                    document.getElementById('login-otp-error').classList.add('hidden');
+                    if (isResend) showToast('New code sent!', '#2d6a2d');
+                } else {
+                    errEl.textContent = data.error || 'Failed to send code. Please try again.';
+                    errEl.classList.remove('hidden');
+                }
+            } catch(e) {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.classList.remove('hidden');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Send Verification Code'; }
+            }
+        }
+
+        async function verifyOTP() {
+            const email = (document.getElementById('login-email-input').value || '').trim();
+            const otp = (document.getElementById('login-otp-input').value || '').trim();
+            const rememberMe = document.getElementById('remember-me-checkbox').checked;
+            const errEl = document.getElementById('login-otp-error');
+            errEl.classList.add('hidden');
+
+            if (!otp || otp.length !== 6) {
+                errEl.textContent = 'Please enter the 6-digit code.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('otp-verify-btn');
+            btn.disabled = true; btn.textContent = 'Verifying…';
+
+            try {
+                const res = await fetch(`${SUBMIT_URL}?action=verify-otp&email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`);
+                const data = await res.json();
+                if (data.ok) {
+                    const user = {
+                        email: data.email,
+                        type: data.userType || 'member',
+                        firstName: data.firstName || '',
+                        lastName: data.lastName || '',
+                        businessName: data.businessName || '',
+                        name: data.firstName ? data.firstName + ' ' + data.lastName : data.email.split('@')[0],
+                    };
+                    currentUser = user;
+                    localStorage.setItem('gw100_user', JSON.stringify(user));
+                    if (rememberMe) saveRememberToken(user);
+                    updateAuthUI();
+                    showToast('Welcome back, ' + (user.firstName || user.email) + '!', '#2d6a2d');
+                    showPage(getDashboardPage(user));
+                } else {
+                    errEl.textContent = data.error || 'Invalid code. Please try again.';
+                    errEl.classList.remove('hidden');
+                }
+            } catch(e) {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Verify & Sign In';
+            }
+        }
+
+        function backToEmail() {
+            document.getElementById('login-step-otp').classList.add('hidden');
+            document.getElementById('login-step-email').classList.remove('hidden');
+            document.getElementById('login-otp-input').value = '';
+        }
+
+        function adminLogin() {
+            const email = (document.getElementById('login-email-input').value || '').trim();
+            const password = (document.getElementById('admin-password-input').value || '').trim();
+            if ((email === 'admin@test.com' || email === '') && password === 'admin123') {
+                const user = { email: 'admin@test.com', type: 'admin', name: 'Admin' };
+                currentUser = user;
+                localStorage.setItem('gw100_user', JSON.stringify(user));
+                updateAuthUI();
+                showPage('admin-dashboard');
+                showToast('Welcome, Admin!', '#2d6a2d');
+            } else {
+                showToast('Invalid admin credentials.', '#dc2626');
+            }
+        }
+
+        // ===================== END OTP LOGIN =====================
+
         // Update authentication UI
         function getDashboardPage(user) {
-            const map = { admin: 'admin-dashboard', association: 'association-dashboard', business: 'business-dashboard', individual: 'member-dashboard' };
+            const map = { admin: 'admin-dashboard', association: 'association-dashboard', business: 'business-dashboard', individual: 'member-dashboard', member: 'member-dashboard' };
             return map[user.type] || 'home';
         }
 
@@ -2515,6 +2586,7 @@
 
         // Logout function
         function logout() {
+            clearRememberToken();
             currentUser = null;
             userCourses = [];
             localStorage.removeItem('gw100_user');
