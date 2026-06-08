@@ -25,6 +25,7 @@ const TAB_MAP = {
   'land-trust':         'Land Trust',
   'message':            'Messages',
   'task':               'Tasks',
+  'receipt':            'Receipts',
 };
 
 const HEADERS = {
@@ -36,6 +37,7 @@ const HEADERS = {
   'land-trust':         ['Timestamp','Row ID','Name','Email','Phone','Interest Type','Message','Status'],
   'message':            ['Timestamp','Message ID','Thread ID','From','To','To Name','Subject','Message','Read','Flagged','Deleted'],
   'task':               ['Timestamp','Task ID','Title','Description','Due Date','Assigned To','Assigned By','Status','Notes','Last Updated'],
+  'receipt':            ['Timestamp','Receipt ID','User Email','Business Name','Amount','Receipt Date','Image Hash','Image Data','Status','Points Awarded','Admin Notes'],
 };
 
 // ---- READ (admin dashboard fetches live data) ----
@@ -120,6 +122,25 @@ function doGet(e) {
     } catch(err) {
       result = { ok: false, error: err.toString() };
     }
+  } else if (action === 'receipts') {
+    const userFilter = e.parameter.user || '';
+    const allFlag = e.parameter.all === 'true';
+    try {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('Receipts');
+      if (!sheet || sheet.getLastRow() < 2) { result = { ok: true, rows: [] }; }
+      else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        let rows = data.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i]; });
+          return obj;
+        });
+        if (!allFlag && userFilter) rows = rows.filter(r => r['User Email'] === userFilter);
+        result = { ok: true, rows };
+      }
+    } catch(err) { result = { ok: false, error: err.toString() }; }
   } else {
     result = { ok: true, message: 'Greenwood 100 API is running' };
   }
@@ -173,6 +194,60 @@ function doPost(e) {
 
     } else if (formType === 'complete-task') {
       result = updateTaskField(body.taskId, 'Status', 'Completed');
+
+    } else if (formType === 'upload-receipt') {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      let sheet = ss.getSheetByName('Receipts');
+      if (!sheet) {
+        sheet = ss.insertSheet('Receipts');
+        const hr = sheet.getRange(1,1,1,HEADERS['receipt'].length);
+        hr.setValues([HEADERS['receipt']]);
+        hr.setFontWeight('bold').setBackground('#2d6a2d').setFontColor('#ffffff');
+      }
+      // Check for duplicate hash
+      const hash = body.imageHash || '';
+      if (hash) {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const hashCol = headers.indexOf('Image Hash');
+        if (hashCol >= 0) {
+          for (let i = 1; i < data.length; i++) {
+            if (data[i][hashCol] === hash) {
+              result = { ok: false, duplicate: true, error: 'Duplicate receipt detected.' };
+              return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+            }
+          }
+        }
+      }
+      const ts = new Date().toISOString();
+      const receiptId = Date.now().toString();
+      sheet.appendRow([ts, receiptId, body.userEmail||'', body.businessName||'', body.amount||'', body.receiptDate||'', hash, body.imageData||'', 'Pending', '', '']);
+      result = { ok: true, receiptId };
+
+    } else if (formType === 'update-receipt-status') {
+      // admin approves/rejects receipt
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      const sheet = ss.getSheetByName('Receipts');
+      if (!sheet) { result = { ok: false, error: 'Receipts sheet not found' }; }
+      else {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const idCol = headers.indexOf('Receipt ID');
+        const statusCol = headers.indexOf('Status');
+        const pointsCol = headers.indexOf('Points Awarded');
+        const notesCol = headers.indexOf('Admin Notes');
+        let found = false;
+        for (let i = 1; i < data.length; i++) {
+          if (String(data[i][idCol]) === String(body.receiptId)) {
+            sheet.getRange(i+1, statusCol+1).setValue(body.status);
+            if (body.points && pointsCol >= 0) sheet.getRange(i+1, pointsCol+1).setValue(body.points);
+            if (body.notes && notesCol >= 0) sheet.getRange(i+1, notesCol+1).setValue(body.notes);
+            found = true;
+            break;
+          }
+        }
+        result = found ? { ok: true } : { ok: false, error: 'Receipt not found' };
+      }
 
     } else {
       // Form submission

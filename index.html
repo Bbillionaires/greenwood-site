@@ -261,6 +261,9 @@
                             <button onclick="showAdminTab('messages')" id="admin-messages-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💬 Messages
                             </button>
+                            <button onclick="showAdminTab('receipts')" id="admin-receipts-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                                📄 Receipts
+                            </button>
                         </nav>
                     </div>
 
@@ -383,6 +386,25 @@
                                 <div class="border rounded-lg p-4">
                                     <h4 class="font-medium mb-2">Business Performance</h4>
                                     <p class="text-sm text-gray-600">Monitor business directory usage</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Receipts Tab -->
+                        <div id="admin-receipts-content" class="admin-tab-content hidden">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">Receipt Submissions</h3>
+                                    <select id="receipt-status-filter" onchange="loadAdminReceipts()" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5">
+                                        <option value="">All</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Duplicate">Duplicate</option>
+                                    </select>
+                                </div>
+                                <div id="admin-receipts-list" class="space-y-4">
+                                    <div class="text-gray-400 text-sm text-center py-8">Loading…</div>
                                 </div>
                             </div>
                         </div>
@@ -727,6 +749,9 @@
                             <button onclick="showMemberTab('tasks')" id="member-tasks-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📋 My Tasks
                             </button>
+                            <button onclick="showMemberTab('receipts')" id="member-receipts-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                                📄 My Receipts
+                            </button>
                         </nav>
                     </div>
 
@@ -874,6 +899,16 @@
                                 <h3 class="text-lg font-semibold mb-4">My Assigned Tasks</h3>
                                 <div id="member-task-list" class="space-y-3">
                                     <div class="text-gray-400 text-sm text-center py-8">Loading tasks…</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- My Receipts Tab -->
+                        <div id="member-receipts-content" class="member-tab-content hidden">
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-4">My Submitted Receipts</h3>
+                                <div id="member-receipts-list" class="space-y-3">
+                                    <div class="text-gray-400 text-sm text-center py-8">Loading receipts…</div>
                                 </div>
                             </div>
                         </div>
@@ -2120,7 +2155,25 @@
         // To switch to Google Apps Script (free), replace the URL below
         // with your deployed Apps Script Web App URL:
         const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbxiP_fY_0pQjQOlhhdELKIogWvrb-PNaCt5Kh1oQg6nFV7roM_gYkRHN1R3Aa_rcXtL5g/exec';
-        
+
+        async function hashImage(base64) {
+            try {
+                const str = base64.slice(0, 50000); // use first 50KB for speed
+                const buf = new TextEncoder().encode(str);
+                const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+                return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
+            } catch(e) {
+                // fallback: simple string hash
+                let h = 0;
+                const s = base64.slice(0, 10000);
+                for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+                return String(Math.abs(h));
+            }
+        }
+
+        function loadUserReceipts() { try { return JSON.parse(localStorage.getItem('gw100_receipts') || '[]'); } catch(e) { return []; } }
+        function saveUserReceipts(arr) { localStorage.setItem('gw100_receipts', JSON.stringify(arr)); }
+
         // Navigation system
         function showPage(pageId) {
             // Hide all sections
@@ -2263,6 +2316,7 @@
             // Refresh business list to show pending signups
             if (tabName === 'businesses') refreshAdminBusinessList();
             if (tabName === 'messages') loadAdminMessages();
+            if (tabName === 'receipts') loadAdminReceipts();
         }
 
         function showBusinessTab(tabName) {
@@ -2360,6 +2414,9 @@
             }
             if (tabName === 'tasks') {
                 loadVolunteerTasks(document.getElementById('member-task-list'));
+            }
+            if (tabName === 'receipts') {
+                loadUserReceiptHistory(document.getElementById('member-receipts-list'));
             }
         }
 
@@ -3062,6 +3119,7 @@
                         <button onclick="openReviewModal('${safeId}','${safeName}')" class="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
                             ✍️ Review
                         </button>
+                        <button onclick="openReceiptModal('${escJs(business.name)}')" class="bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 text-sm">📄 Receipt</button>
                         <button onclick="openNewMessageModal('${escJs(business.ownerEmail || '')}','${safeName}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm">💬 Message</button>
                         <button onclick="viewBusinessDetails(this)" data-bizname="${escAttr(business.name)}" data-bizdesc="${escAttr(business.description)}" data-bizrating="${rating}" data-bizreviews="${count}" data-bizphone="${escAttr(business.phone)}" data-bizaddress="${escAttr(business.address)}" data-bizid="${escAttr(bizId)}" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                             Details
@@ -5648,7 +5706,297 @@
             showToast('Task marked complete!', '#2d6a2d');
             loadAssociationTasks();
         }
+
+        // ===================== RECEIPT SYSTEM =====================
+
+        let _receiptImageData = null;
+        let _receiptImageHash = null;
+
+        function openReceiptModal(businessName) {
+            if (!currentUser) { showToast('Please log in to upload receipts.', '#dc2626'); showPage('login'); return; }
+            _receiptImageData = null;
+            _receiptImageHash = null;
+            document.getElementById('receipt-business').value = businessName;
+            document.getElementById('receipt-amount').value = '';
+            document.getElementById('receipt-date').value = '';
+            document.getElementById('receipt-file-input').value = '';
+            document.getElementById('receipt-preview-wrap').classList.add('hidden');
+            document.getElementById('receipt-error').classList.add('hidden');
+            document.getElementById('receipt-success').classList.add('hidden');
+            document.getElementById('receipt-submit-btn').disabled = false;
+            document.getElementById('receipt-submit-btn').textContent = 'Submit Receipt';
+            const m = document.getElementById('receipt-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeReceiptModal() {
+            const m = document.getElementById('receipt-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+            _receiptImageData = null;
+            _receiptImageHash = null;
+        }
+
+        async function handleReceiptImageSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                document.getElementById('receipt-error').textContent = 'Image must be under 5MB.';
+                document.getElementById('receipt-error').classList.remove('hidden');
+                input.value = '';
+                return;
+            }
+            document.getElementById('receipt-error').classList.add('hidden');
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                _receiptImageData = e.target.result;
+                _receiptImageHash = await hashImage(_receiptImageData);
+                const img = document.getElementById('receipt-preview-img');
+                img.src = _receiptImageData;
+                document.getElementById('receipt-preview-wrap').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function submitReceipt() {
+            const businessName = document.getElementById('receipt-business').value;
+            const amount = document.getElementById('receipt-amount').value.trim();
+            const receiptDate = document.getElementById('receipt-date').value;
+            const errEl = document.getElementById('receipt-error');
+            const successEl = document.getElementById('receipt-success');
+            const btn = document.getElementById('receipt-submit-btn');
+
+            errEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!amount || !receiptDate || !_receiptImageData) {
+                errEl.textContent = 'Please fill in all fields and upload a receipt photo.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            // Check for duplicate hash in localStorage first
+            const localReceipts = loadUserReceipts();
+            if (_receiptImageHash && localReceipts.find(r => r.imageHash === _receiptImageHash)) {
+                errEl.textContent = '⚠️ This receipt has already been submitted.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true; btn.textContent = 'Submitting…';
+
+            const payload = {
+                formType: 'upload-receipt',
+                userEmail: currentUser.email,
+                businessName,
+                amount,
+                receiptDate,
+                imageHash: _receiptImageHash,
+                imageData: _receiptImageData,
+            };
+
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const data = await res.json();
+                    if (data.duplicate) {
+                        errEl.textContent = '⚠️ This receipt has already been submitted by someone else.';
+                        errEl.classList.remove('hidden');
+                        btn.disabled = false; btn.textContent = 'Submit Receipt';
+                        return;
+                    }
+                    if (!data.ok) {
+                        errEl.textContent = 'Error: ' + (data.error || 'Unknown error');
+                        errEl.classList.remove('hidden');
+                        btn.disabled = false; btn.textContent = 'Submit Receipt';
+                        return;
+                    }
+                    // Save to localStorage
+                    localReceipts.push({ receiptId: data.receiptId, businessName, amount, receiptDate, imageHash: _receiptImageHash, status: 'Pending', timestamp: new Date().toISOString() });
+                    saveUserReceipts(localReceipts);
+                } catch(e) {
+                    errEl.textContent = 'Network error. Please try again.';
+                    errEl.classList.remove('hidden');
+                    btn.disabled = false; btn.textContent = 'Submit Receipt';
+                    return;
+                }
+            } else {
+                // Demo mode
+                const receiptId = Date.now().toString();
+                localReceipts.push({ receiptId, businessName, amount, receiptDate, imageHash: _receiptImageHash, imageData: _receiptImageData, status: 'Pending', timestamp: new Date().toISOString(), userEmail: currentUser.email });
+                saveUserReceipts(localReceipts);
+            }
+
+            successEl.textContent = '✅ Receipt submitted! You\'ll earn points once an admin reviews it.';
+            successEl.classList.remove('hidden');
+            btn.textContent = 'Submitted!';
+            setTimeout(closeReceiptModal, 2500);
+        }
+
+        async function loadUserReceiptHistory(container) {
+            if (!container || !currentUser) return;
+            container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading…</div>';
+
+            let receipts = [];
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=receipts&user=${encodeURIComponent(currentUser.email)}`);
+                    const data = await res.json();
+                    if (data.ok) receipts = data.rows || [];
+                    else receipts = loadUserReceipts();
+                } catch(e) { receipts = loadUserReceipts(); }
+            } else {
+                receipts = loadUserReceipts().filter(r => r.userEmail === currentUser.email);
+            }
+
+            if (!receipts.length) {
+                container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No receipts submitted yet. Upload a receipt from the Business Directory to earn points!</div>';
+                return;
+            }
+
+            const statusColors = { Pending: 'bg-yellow-50 border-yellow-300', Approved: 'bg-green-50 border-green-300', Rejected: 'bg-red-50 border-red-200', Duplicate: 'bg-orange-50 border-orange-300' };
+            container.innerHTML = [...receipts].reverse().map(r => {
+                const biz = r['Business Name'] || r.businessName || '';
+                const amount = r['Amount'] || r.amount || '';
+                const date = r['Receipt Date'] || r.receiptDate || '';
+                const status = r['Status'] || r.status || 'Pending';
+                const points = r['Points Awarded'] || r.pointsAwarded || '';
+                const ts = r['Timestamp'] || r.timestamp || '';
+                const color = statusColors[status] || 'bg-gray-50 border-gray-200';
+                return `<div class="p-4 border rounded-lg ${color}">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-medium text-gray-900">${biz}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium ${status==='Approved'?'bg-green-200 text-green-800':status==='Rejected'?'bg-red-200 text-red-800':status==='Duplicate'?'bg-orange-200 text-orange-800':'bg-yellow-200 text-yellow-800'}">${status}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">Amount: <strong>$${amount}</strong> · Date: ${date}</div>
+                    ${points ? `<div class="text-sm text-green-700 font-medium mt-1">🏆 +${points} points awarded</div>` : ''}
+                    ${ts ? `<div class="text-xs text-gray-400 mt-1">Submitted: ${new Date(ts).toLocaleDateString()}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        async function loadAdminReceipts() {
+            const container = document.getElementById('admin-receipts-list');
+            if (!container) return;
+            container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">Loading…</div>';
+
+            const statusFilter = (document.getElementById('receipt-status-filter') || {}).value || '';
+            let receipts = [];
+
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    const res = await fetch(`${SUBMIT_URL}?action=receipts&all=true`);
+                    const data = await res.json();
+                    if (data.ok) receipts = data.rows || [];
+                } catch(e) {}
+            } else {
+                receipts = loadUserReceipts();
+            }
+
+            if (statusFilter) receipts = receipts.filter(r => (r['Status'] || r.status) === statusFilter);
+
+            if (!receipts.length) {
+                container.innerHTML = '<div class="text-gray-400 text-sm text-center py-8">No receipts found.</div>';
+                return;
+            }
+
+            container.innerHTML = [...receipts].reverse().map(r => {
+                const receiptId = r['Receipt ID'] || r.receiptId || '';
+                const userEmail = r['User Email'] || r.userEmail || '';
+                const biz = r['Business Name'] || r.businessName || '';
+                const amount = r['Amount'] || r.amount || '';
+                const date = r['Receipt Date'] || r.receiptDate || '';
+                const status = r['Status'] || r.status || 'Pending';
+                const imageData = r['Image Data'] || r.imageData || '';
+                const ts = r['Timestamp'] || r.timestamp || '';
+                const isPending = status === 'Pending';
+                const safeId = (receiptId||'').replace(/'/g,"\\'");
+                return `<div class="p-4 border rounded-lg ${status==='Approved'?'bg-green-50 border-green-300':status==='Duplicate'?'bg-orange-50 border-orange-300':status==='Rejected'?'bg-red-50 border-red-200':'bg-white border-gray-200'}">
+                    <div class="flex flex-wrap gap-4 items-start">
+                        ${imageData ? `<img src="${imageData}" alt="Receipt" class="w-24 h-24 object-cover rounded-lg border border-gray-200 flex-shrink-0 cursor-pointer" onclick="this.style.width=this.style.width==='100%'?'6rem':'100%'">` : '<div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs">No image</div>'}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="font-semibold text-gray-900">${biz}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-full font-medium ${status==='Approved'?'bg-green-200 text-green-800':status==='Rejected'?'bg-red-200 text-red-800':status==='Duplicate'?'bg-orange-200 text-orange-800':'bg-yellow-200 text-yellow-800'}">${status}</span>
+                            </div>
+                            <div class="text-sm text-gray-600">From: <strong>${userEmail}</strong></div>
+                            <div class="text-sm text-gray-600">Amount: <strong>$${amount}</strong> · Receipt Date: ${date}</div>
+                            ${ts ? `<div class="text-xs text-gray-400 mt-1">Submitted: ${new Date(ts).toLocaleString()}</div>` : ''}
+                            ${isPending ? `<div class="flex gap-2 mt-3 flex-wrap">
+                                <input type="number" id="points-${safeId}" placeholder="Points" min="1" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm">
+                                <button data-rid="${safeId}" onclick="adminUpdateReceipt(this.dataset.rid,'Approved')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">✅ Approve</button>
+                                <button data-rid="${safeId}" onclick="adminUpdateReceipt(this.dataset.rid,'Duplicate')" class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600">⚠️ Duplicate</button>
+                                <button data-rid="${safeId}" onclick="adminUpdateReceipt(this.dataset.rid,'Rejected')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">❌ Reject</button>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function adminUpdateReceipt(receiptId, status) {
+            const pointsEl = document.getElementById('points-' + receiptId);
+            const points = pointsEl ? pointsEl.value.trim() : '';
+
+            if (SUBMIT_URL !== '/api/submit') {
+                try {
+                    await fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify({ formType: 'update-receipt-status', receiptId, status, points }) });
+                } catch(e) {}
+            } else {
+                const receipts = loadUserReceipts();
+                const r = receipts.find(x => x.receiptId === receiptId);
+                if (r) { r.status = status; if (points) r.pointsAwarded = points; saveUserReceipts(receipts); }
+            }
+            showToast(`Receipt ${status.toLowerCase()}!`, status === 'Approved' ? '#2d6a2d' : '#dc2626');
+            loadAdminReceipts();
+        }
+
     </script>
+
+<!-- Receipt Upload Modal -->
+<div id="receipt-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-screen overflow-y-auto">
+        <div class="flex items-center justify-between p-6 border-b">
+            <h2 class="text-xl font-bold text-gray-900">📄 Upload Receipt</h2>
+            <button onclick="closeReceiptModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+                Upload a receipt from this business to earn reward points!
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Business</label>
+                <input type="text" id="receipt-business" readonly class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount Spent *</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+                        <input type="number" id="receipt-amount" step="0.01" min="0" class="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 text-sm" placeholder="0.00">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Receipt Date *</label>
+                    <input type="date" id="receipt-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 text-sm">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Receipt Photo *</label>
+                <div id="receipt-preview-wrap" class="hidden mb-2">
+                    <img id="receipt-preview-img" src="" alt="Receipt preview" class="w-full max-h-48 object-contain rounded-lg border border-gray-200 bg-gray-50">
+                </div>
+                <input type="file" id="receipt-file-input" accept="image/*" onchange="handleReceiptImageSelect(this)" class="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+                <p class="text-xs text-gray-400 mt-1">JPG, PNG — max 5MB. Each receipt can only be submitted once.</p>
+            </div>
+            <div id="receipt-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
+            <div id="receipt-success" class="hidden text-sm text-green-700 bg-green-50 rounded-lg p-3"></div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeReceiptModal()" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 text-sm">Cancel</button>
+                <button id="receipt-submit-btn" onclick="submitReceipt()" class="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 text-sm font-medium">Submit Receipt</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
