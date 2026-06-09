@@ -30,7 +30,7 @@ const TAB_MAP = {
 };
 
 const HEADERS = {
-  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Address','Description','Website','Referral Program','Investor Wanted','Verified','Status','Home Buying Interest','Skills','Availability','Association','EIN','Mission','Service Area','Member Count','Focus Area'],
+  'signup':             ['Timestamp','Row ID','First Name','Last Name','Phone','Email','Account Type','Business Name','Category','Address','Description','Website','Referral Program','Investor Wanted','Verified','Status','Home Buying Interest','Skills','Availability','Association','EIN','Mission','Service Area','Member Count','Focus Area','Marketing Help'],
   'contact':            ['Timestamp','Row ID','Name','Email','Subject','Message','Status'],
   'volunteer':          ['Timestamp','Row ID','Name','Email','Phone','Opportunity','Association','Notes','Status'],
   'investor-interest':  ['Timestamp','Row ID','Name','Email','Investment Range','Message','Business Interest','Status'],
@@ -410,7 +410,8 @@ function doPost(e) {
                    body.investorWanted||'No', body.verified ? 'Yes' : 'No', 'Pending',
                    body.homeBuyingInterest||'', body.skills||'', body.availability||'',
                    body.association||'', body.ein||'', body.mission||'',
-                   body.serviceArea||'', body.memberCount||'', body.focusArea||''];
+                   body.serviceArea||'', body.memberCount||'', body.focusArea||'',
+                   body.marketingHelp||''];
             break;
           case 'contact':
             row = [ts, rowId, body.name||'', body.email||'', body.subject||'', body.message||'', 'New'];
