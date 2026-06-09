@@ -9,6 +9,18 @@
         body {
             box-sizing: border-box;
         }
+        /* Hide scrollbar on tab navs but keep scroll functional */
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        /* Prevent horizontal page overflow on mobile */
+        html, body { overflow-x: hidden; max-width: 100vw; }
+        /* Responsive table wrapper */
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        /* Responsive cards and modals */
+        @media (max-width: 640px) {
+            .modal-inner { padding: 1rem !important; }
+            .dash-card { padding: 1rem !important; }
+        }
         .hero-gradient {
             background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
         }
@@ -110,16 +122,16 @@
     <div id="main-content">
         <!-- Homepage -->
         <section id="home" class="page-section">
-            <div class="hero-gradient text-white py-20">
+            <div class="hero-gradient text-white py-12 sm:py-20">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 class="text-5xl font-bold mb-6 fade-in">Growing Communities Worldwide</h1>
-                    <p class="text-xl mb-8 max-w-3xl mx-auto fade-in">Connecting neighborhoods, empowering businesses, and building stronger communities from Jacksonville to the world.</p>
-                    <div class="space-x-4 fade-in">
-                        <button onclick="showPage('directory'); showAddBusiness()" class="bg-white text-brand-green px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <h1 class="text-3xl sm:text-5xl font-bold mb-6 fade-in">Growing Communities Worldwide</h1>
+                    <p class="text-lg sm:text-xl mb-8 max-w-3xl mx-auto fade-in">Connecting neighborhoods, empowering businesses, and building stronger communities from Jacksonville to the world.</p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center fade-in">
+                        <button onclick="showPage('directory'); showAddBusiness()" class="bg-white text-brand-green px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
   Join
 </button>
 
-                        <button onclick="showPage('membership')" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-brand-green transition-colors">Become a Member</button>
+                        <button onclick="showPage('membership')" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-brand-green transition-colors">Become a Member</button>
                     </div>
                 </div>
             </div>
@@ -127,13 +139,13 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <!-- Mission Statement -->
                 <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
                     <p class="text-lg text-gray-600 max-w-4xl mx-auto">To strengthen communities by connecting local businesses, residents, and organizations through innovative programs that promote economic growth, neighborhood engagement, and mutual support.</p>
                 </div>
 
                 <!-- Success Stories -->
                 <div class="mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Success Stories</h2>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-12">Success Stories</h2>
                     <div class="grid md:grid-cols-3 gap-8">
                         <div class="bg-white p-6 rounded-lg shadow-lg card-hover">
                             <div class="text-4xl mb-4">🏪</div>
@@ -218,7 +230,7 @@
         <section id="admin-dashboard" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="mb-8">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
                     <p class="text-gray-600">System administration and management</p>
                 </div>
 
@@ -245,32 +257,32 @@
                 <!-- Admin Tabs -->
                 <div class="bg-white rounded-lg shadow-lg">
                     <div class="border-b border-gray-200">
-                        <nav class="flex space-x-8 px-6">
-                            <button onclick="showAdminTab('users')" id="admin-users-tab" class="admin-tab py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
+                        <nav class="flex overflow-x-auto scrollbar-hide px-2 sm:px-6 gap-1 sm:gap-0 sm:space-x-8">
+                            <button onclick="showAdminTab('users')" id="admin-users-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-blue-500 text-blue-600 font-medium text-sm">
                                 👥 User Management
                             </button>
-                            <button onclick="showAdminTab('businesses')" id="admin-businesses-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('businesses')" id="admin-businesses-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 🏢 Business Management
                             </button>
-                            <button onclick="showAdminTab('content')" id="admin-content-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('content')" id="admin-content-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📝 Content Management
                             </button>
-                            <button onclick="showAdminTab('reports')" id="admin-reports-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('reports')" id="admin-reports-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📊 Reports
                             </button>
-                            <button onclick="showAdminTab('messages')" id="admin-messages-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('messages')" id="admin-messages-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💬 Messages
                             </button>
-                            <button onclick="showAdminTab('receipts')" id="admin-receipts-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('receipts')" id="admin-receipts-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📄 Receipts
                             </button>
-                            <button onclick="showAdminTab('volunteers')" id="admin-volunteers-tab" class="admin-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAdminTab('volunteers')" id="admin-volunteers-tab" class="admin-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 🙋 Volunteers
                             </button>
                         </nav>
                     </div>
 
-                    <div class="p-6">
+                    <div class="p-3 sm:p-6">
                         <!-- Users Tab -->
                         <div id="admin-users-content" class="admin-tab-content">
                             <h3 class="text-lg font-semibold mb-4">User Management</h3>
@@ -431,7 +443,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 class="text-4xl font-bold text-gray-900 mb-2">Business Dashboard</h1>
+                        <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Business Dashboard</h1>
                         <p class="text-gray-600">Manage your business profile and track performance</p>
                     </div>
                     <button onclick="openEditListingModal()" class="bg-green-700 text-white px-5 py-2.5 rounded-lg hover:bg-green-800 font-medium shadow">✏️ Edit My Listing</button>
@@ -460,20 +472,20 @@
                 <!-- Business Tabs -->
                 <div class="bg-white rounded-lg shadow-lg">
                     <div class="border-b border-gray-200">
-                        <nav class="flex space-x-8 px-6">
-                            <button onclick="showBusinessTab('profile')" id="business-profile-tab" class="business-tab py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
+                        <nav class="flex overflow-x-auto scrollbar-hide px-2 sm:px-6 gap-1 sm:gap-0 sm:space-x-8">
+                            <button onclick="showBusinessTab('profile')" id="business-profile-tab" class="business-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-blue-500 text-blue-600 font-medium text-sm">
                                 🏢 Business Profile
                             </button>
-                            <button onclick="showBusinessTab('analytics')" id="business-analytics-tab" class="business-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showBusinessTab('analytics')" id="business-analytics-tab" class="business-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📊 Analytics
                             </button>
-                            <button onclick="showBusinessTab('reviews')" id="business-reviews-tab" class="business-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showBusinessTab('reviews')" id="business-reviews-tab" class="business-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 ⭐ Reviews
                             </button>
-                            <button onclick="showBusinessTab('marketing')" id="business-marketing-tab" class="business-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showBusinessTab('marketing')" id="business-marketing-tab" class="business-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📢 Marketing
                             </button>
-                            <button onclick="showBusinessTab('inbox')" id="business-inbox-tab" class="business-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showBusinessTab('inbox')" id="business-inbox-tab" class="business-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💬 Inbox <span id="business-inbox-badge" class="hidden ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full"></span>
                             </button>
                         </nav>
@@ -576,7 +588,7 @@
         <section id="association-dashboard" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="mb-8">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-2">Association Dashboard</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Association Dashboard</h1>
                     <p class="text-gray-600">Manage your neighborhood association and events</p>
                 </div>
 
@@ -603,23 +615,23 @@
                 <!-- Association Tabs -->
                 <div class="bg-white rounded-lg shadow-lg">
                     <div class="border-b border-gray-200">
-                        <nav class="flex space-x-8 px-6">
-                            <button onclick="showAssociationTab('events')" id="association-events-tab" class="association-tab py-4 px-1 border-b-2 border-green-500 text-green-600 font-medium text-sm">
+                        <nav class="flex overflow-x-auto scrollbar-hide px-2 sm:px-6 gap-1 sm:gap-0 sm:space-x-8">
+                            <button onclick="showAssociationTab('events')" id="association-events-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-green-500 text-green-600 font-medium text-sm">
                                 📅 Events
                             </button>
-                            <button onclick="showAssociationTab('members')" id="association-members-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAssociationTab('members')" id="association-members-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 👥 Members
                             </button>
-                            <button onclick="showAssociationTab('communications')" id="association-communications-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAssociationTab('communications')" id="association-communications-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📢 Communications
                             </button>
-                            <button onclick="showAssociationTab('finances')" id="association-finances-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAssociationTab('finances')" id="association-finances-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💰 Finances
                             </button>
-                            <button onclick="showAssociationTab('tasks')" id="association-tasks-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAssociationTab('tasks')" id="association-tasks-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📋 Tasks
                             </button>
-                            <button onclick="showAssociationTab('volunteers')" id="association-volunteers-tab" class="association-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showAssociationTab('volunteers')" id="association-volunteers-tab" class="association-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 🙋 Volunteers
                             </button>
                         </nav>
@@ -729,7 +741,7 @@
         <section id="member-dashboard" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="mb-8">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-2">Member Dashboard</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Member Dashboard</h1>
                     <p class="text-gray-600">Your community connection hub</p>
                 </div>
 
@@ -756,26 +768,26 @@
                 <!-- Member Tabs -->
                 <div class="bg-white rounded-lg shadow-lg">
                     <div class="border-b border-gray-200">
-                        <nav class="flex space-x-8 px-6">
-                            <button onclick="showMemberTab('profile')" id="member-profile-tab" class="member-tab py-4 px-1 border-b-2 border-purple-500 text-purple-600 font-medium text-sm">
+                        <nav class="flex overflow-x-auto scrollbar-hide px-2 sm:px-6 gap-1 sm:gap-0 sm:space-x-8">
+                            <button onclick="showMemberTab('profile')" id="member-profile-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-purple-500 text-purple-600 font-medium text-sm">
                                 👤 Profile
                             </button>
-                            <button onclick="showMemberTab('referrals')" id="member-referrals-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('referrals')" id="member-referrals-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 🤝 Referrals
                             </button>
-                            <button onclick="showMemberTab('courses')" id="member-courses-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('courses')" id="member-courses-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📚 My Courses & Certificates
                             </button>
-                            <button onclick="showMemberTab('rewards')" id="member-rewards-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('rewards')" id="member-rewards-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 🎁 Rewards
                             </button>
-                            <button onclick="showMemberTab('inbox')" id="member-inbox-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('inbox')" id="member-inbox-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 💬 Inbox <span id="member-inbox-badge" class="hidden ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full"></span>
                             </button>
-                            <button onclick="showMemberTab('tasks')" id="member-tasks-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('tasks')" id="member-tasks-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📋 My Tasks
                             </button>
-                            <button onclick="showMemberTab('receipts')" id="member-receipts-tab" class="member-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                            <button onclick="showMemberTab('receipts')" id="member-receipts-tab" class="member-tab py-3 px-3 border-b-2 whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                                 📄 My Receipts
                             </button>
                         </nav>
@@ -973,7 +985,7 @@
         <section id="about" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-16">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">About Greenwood 100 Inc.</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">About Greenwood 100 Inc.</h1>
                     <p class="text-xl text-gray-600 max-w-3xl mx-auto">Building bridges between communities, one neighborhood at a time.</p>
                 </div>
 
@@ -1063,7 +1075,7 @@
         <section id="directory" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Business Directory</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Business Directory</h1>
                     <p class="text-xl text-gray-600">Discover and connect with local businesses in your community</p>
                 </div>
 
@@ -1469,7 +1481,7 @@
         <section id="courses" class="page-section hidden">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold text-gray-900 mb-6">Community Courses</h1>
+      <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Community Courses</h1>
       <p class="text-xl text-gray-600">Develop skills that advance your career and business.</p>
     </div>
 
@@ -1501,7 +1513,7 @@
         <section id="membership" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Membership Plans</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-4">Membership Plans</h1>
                     <p class="text-xl text-gray-600">Choose the membership level that's right for you.</p>
                 </div>
                 <!-- Tier Cards -->
@@ -1572,7 +1584,7 @@
         <section id="volunteers" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Volunteer Opportunities</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-4">Volunteer Opportunities</h1>
                     <p class="text-xl text-gray-600">Make a difference in your community through volunteering.</p>
                 </div>
                 <div class="grid md:grid-cols-2 gap-8">
@@ -1643,7 +1655,7 @@
         <section id="news" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Community News</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Community News</h1>
                     <p class="text-xl text-gray-600">Stay updated with the latest community news, events, and business highlights.</p>
                 </div>
                 <div class="flex flex-wrap gap-3 mb-8">
@@ -1710,7 +1722,7 @@
         <section id="contact" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Contact Us</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Contact Us</h1>
                     <p class="text-xl text-gray-600">Get in touch with the Greenwood 100 team. We'd love to hear from you.</p>
                 </div>
                 <div class="grid lg:grid-cols-2 gap-12">
@@ -1800,17 +1812,22 @@
         <section id="leaderboard" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Community Leaderboard</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Community Leaderboard</h1>
                     <p class="text-xl text-gray-600">Top members ranked by reward points earned through referrals, courses, and community participation.</p>
                 </div>
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     <div class="bg-brand-green text-white px-6 py-4">
-                        <div class="grid grid-cols-12 text-sm font-semibold">
+                        <div class="hidden sm:grid grid-cols-12 text-sm font-semibold">
                             <div class="col-span-1">Rank</div>
                             <div class="col-span-5">Member</div>
                             <div class="col-span-2 text-center">Points</div>
                             <div class="col-span-2 text-center">Referrals</div>
                             <div class="col-span-2 text-center">Courses</div>
+                        </div>
+                        <div class="sm:hidden grid grid-cols-3 text-sm font-semibold">
+                            <div>Rank</div>
+                            <div>Member</div>
+                            <div class="text-center">Points</div>
                         </div>
                     </div>
                     <div id="leaderboard-list" class="divide-y divide-gray-100">
@@ -1825,7 +1842,7 @@
         <section id="investors" class="page-section hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-gray-900 mb-6">Investor Portal</h1>
+                    <h1 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Investor Portal</h1>
                     <p class="text-xl text-gray-600">Connect with local businesses seeking investment and funding opportunities in our community.</p>
                 </div>
                 <div class="grid lg:grid-cols-3 gap-8">
@@ -4155,19 +4172,35 @@
             if (!list) return;
             const rankColors = ['bg-yellow-400', 'bg-gray-300', 'bg-orange-400'];
             list.innerHTML = leaderboardData.map((member, idx) => `
-                <div class="grid grid-cols-12 items-center px-6 py-4 hover:bg-gray-50 transition-colors ${idx < 3 ? 'bg-green-50' : ''}">
-                    <div class="col-span-1 font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-500' : 'text-gray-600'}">
-                        ${idx < 3 ? ['🥇','🥈','🥉'][idx] : member.rank}
-                    </div>
-                    <div class="col-span-5 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full ${rankColors[idx] || 'bg-brand-green'} flex items-center justify-center text-white font-bold text-sm">
-                            ${member.initials}
+                <div class="hover:bg-gray-50 transition-colors ${idx < 3 ? 'bg-green-50' : ''}">
+                    <!-- Desktop row -->
+                    <div class="hidden sm:grid grid-cols-12 items-center px-6 py-4">
+                        <div class="col-span-1 font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-500' : 'text-gray-600'}">
+                            ${idx < 3 ? ['🥇','🥈','🥉'][idx] : member.rank}
                         </div>
-                        <span class="font-medium text-gray-900">${member.name}</span>
+                        <div class="col-span-5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full ${rankColors[idx] || 'bg-brand-green'} flex items-center justify-center text-white font-bold text-sm">
+                                ${member.initials}
+                            </div>
+                            <span class="font-medium text-gray-900">${member.name}</span>
+                        </div>
+                        <div class="col-span-2 text-center font-bold text-brand-green">${member.points.toLocaleString()}</div>
+                        <div class="col-span-2 text-center text-gray-600">${member.referrals}</div>
+                        <div class="col-span-2 text-center text-gray-600">${member.courses}</div>
                     </div>
-                    <div class="col-span-2 text-center font-bold text-brand-green">${member.points.toLocaleString()}</div>
-                    <div class="col-span-2 text-center text-gray-600">${member.referrals}</div>
-                    <div class="col-span-2 text-center text-gray-600">${member.courses}</div>
+                    <!-- Mobile row -->
+                    <div class="sm:hidden grid grid-cols-3 items-center px-4 py-3">
+                        <div class="font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-500' : 'text-gray-600'}">
+                            ${idx < 3 ? ['🥇','🥈','🥉'][idx] : member.rank}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full ${rankColors[idx] || 'bg-brand-green'} flex items-center justify-center text-white font-bold text-xs">
+                                ${member.initials}
+                            </div>
+                            <span class="font-medium text-gray-900 text-sm">${member.name}</span>
+                        </div>
+                        <div class="text-center font-bold text-brand-green text-sm">${member.points.toLocaleString()}</div>
+                    </div>
                 </div>
             `).join('');
         }
